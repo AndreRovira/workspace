@@ -19,13 +19,15 @@ alias lg='lazygit'
 alias v='nvim'
 
 # Tools
-eval "$(zoxide init zsh --cmd cd)"
 eval "$(starship init zsh)"
 eval "$(fzf --zsh)"
 
-# Plugins (must load last)
+# Plugins (sourced before zoxide so they don't clobber its precmd hook)
 source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# Zoxide last — its doctor warns if anything adds hooks after it
+eval "$(zoxide init zsh --cmd cd)"
 
 # Local-only overrides (gitignored — secrets, machine-specific tweaks)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
