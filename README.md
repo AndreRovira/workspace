@@ -51,31 +51,29 @@ automatically from `~/.config/karabiner/`.
 ### 4. Kanata setup (homerow mods)
 
 Kanata needs the Karabiner DriverKit VirtualHIDDevice driver (installed by the
-`karabiner-elements` cask) and a LaunchAgent to run at login. Because kanata
-needs root to grab the keyboard, the LaunchAgent calls it via `sudo` — so add a
-NOPASSWD sudoers rule first, otherwise login will hang on a password prompt.
+`karabiner-elements` cask) and runs as a **LaunchDaemon** so launchd starts it
+as root at boot — no sudo wrapper, no NOPASSWD rule.
 
-**a. Allow passwordless sudo for kanata** (replace `andre` if your username differs):
-
-```sh
-echo 'andre ALL=(ALL) NOPASSWD: /opt/homebrew/bin/kanata' | sudo tee /etc/sudoers.d/kanata
-sudo chmod 440 /etc/sudoers.d/kanata
-sudo visudo -c   # validates syntax — must say "parsed OK"
-```
-
-**b. Install the LaunchAgent:**
+**a. Install the LaunchDaemon** (root-owned, mode 644):
 
 ```sh
-cp macos/com.local.kanata.plist ~/Library/LaunchAgents/com.local.kanata.plist
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.local.kanata.plist
+sudo install -m 644 -o root -g wheel \
+  macos/com.local.kanata.plist /Library/LaunchDaemons/com.local.kanata.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.local.kanata.plist
 ```
 
-**c. Grant Input Monitoring** in **System Settings → Privacy & Security →
-Input Monitoring** for `/opt/homebrew/bin/kanata`. Logs at
-`/tmp/kanata.stdout.log` and `/tmp/kanata.stderr.log`.
+**b. Grant Input Monitoring** in **System Settings → Privacy & Security →
+Input Monitoring** for `/opt/homebrew/bin/kanata` (click `+`, ⌘⇧G, paste the
+path). Logs at `/tmp/kanata.stdout.log` and `/tmp/kanata.stderr.log`.
 
-If your username is not `andre`, edit the path inside `com.local.kanata.plist`
-before installing.
+If your username is not `andre`, edit the `--cfg` path inside
+`com.local.kanata.plist` before installing.
+
+**Uninstall:**
+```sh
+sudo launchctl bootout system /Library/LaunchDaemons/com.local.kanata.plist
+sudo rm /Library/LaunchDaemons/com.local.kanata.plist
+```
 
 ### 5. Local secrets
 
