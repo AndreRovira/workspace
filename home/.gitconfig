@@ -1,0 +1,27 @@
+[user]
+	name = André Rovira
+	email = github.snipping963@passmail.com
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	default = simple
+	autoSetupRemote = true
+
+[core]
+	editor = nvim
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+# Local-only overrides (per-account identities, machine-specific).
+# Git silently skips this if the file does not exist.
+[include]
+	path = ~/.config/git/local.gitconfig

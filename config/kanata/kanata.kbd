@@ -1,0 +1,119 @@
+;; Kanata configuration for home row mods on non-Glove80 keyboards
+;; Functional match with sunaku/glove80-keymaps timing parameters
+;;
+;; Left hand:  A=Ctrl  S=Alt  D=Cmd  F=Shift  (CACS)
+;; Right hand: J=Shift K=Cmd  L=Alt  ;=Ctrl   (SCAC)
+;;
+;; This matches the Glove80's effective modifiers after macOS Modifier Keys swap.
+
+(defcfg
+  ;; Only intercept keyboards that need Kanata home row mods
+  ;; This leaves the Glove80, Razer mouse, and Karabiner Virtual HID untouched
+  ;; The Glove80 handles its own home row mods in ZMK firmware
+  macos-dev-names-include (
+    "Apple Internal Keyboard / Trackpad"
+    "Gaming Keyboard"
+  )
+  ;; Process keys not defined in defsrc so they pass through unchanged
+  process-unmapped-keys yes
+)
+
+;; Only define the home row mod keys -- everything else passes through
+(defsrc
+  a    s    d    f    j    k    l    ;
+)
+
+;; Timing variables matching sunaku's ZMK config (TAPPING_RESOLUTION = 150ms)
+;;
+;; Per-finger holding times:
+;;   Pinky: 270ms (TAPPING_RESOLUTION + 120) -- slowest finger
+;;   Ring:  240ms (TAPPING_RESOLUTION + 90)
+;;   Middle:210ms (TAPPING_RESOLUTION + 60)
+;;   Index: 180ms (TAPPING_RESOLUTION + 30)  -- fastest finger
+;;
+;; Typing streak decay: 150ms (TAPPING_RESOLUTION)
+;;   Suppresses mods if you typed a key within the last 150ms
+
+(defvar
+  pinky-timeout 270
+  ringy-timeout 240
+  middy-timeout 210
+  index-timeout 180
+  streak-decay  150
+)
+
+;; Home row mod aliases
+;; Using tap-hold-release-keys for bilateral combinations:
+;; - Only triggers modifier when combined with keys on the OPPOSITE hand (non-home-row)
+;; - Same-hand key presses produce normal taps (prevents misfires like "ds" -> Cmd+S)
+;; - Opposite-hand HOME ROW MODS are EXCLUDED to allow chording (e.g., F+J -> capital J)
+;;
+;; Format: (tap-hold-release-keys tap-timeout hold-timeout tap-action hold-action keys-for-hold)
+;; The last argument lists which keys trigger the hold behavior (opposite hand non-home-row keys)
+
+(defalias
+  ;; Left hand home row mods
+  ;; Note: j k l ; are EXCLUDED from the list to allow home row mod chording
+  a-hrm (tap-hold-release-keys $streak-decay $pinky-timeout a lctl (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  s-hrm (tap-hold-release-keys $streak-decay $ringy-timeout s lalt (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  d-hrm (tap-hold-release-keys $streak-decay $middy-timeout d lmet (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  f-hrm (tap-hold-release-keys $streak-decay $index-timeout f lsft (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  ;; Right hand home row mods (mirror)
+  ;; Note: a s d f are EXCLUDED from the list to allow home row mod chording
+  j-hrm (tap-hold-release-keys $streak-decay $index-timeout j rsft (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  k-hrm (tap-hold-release-keys $streak-decay $middy-timeout k rmet (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  l-hrm (tap-hold-release-keys $streak-decay $ringy-timeout l ralt (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+
+  ;-hrm (tap-hold-release-keys $streak-decay $pinky-timeout ; rctl (1 2 3 4 5 6 7 8 9 0
+    q w e r t y u i o p
+    z x c v b n m , . /
+    spc bspc ret tab esc del
+    left right up down
+    home end pgup pgdn))
+)
+
+;; Default layer with home row mods
+(deflayer default
+  @a-hrm @s-hrm @d-hrm @f-hrm @j-hrm @k-hrm @l-hrm @;-hrm
+)

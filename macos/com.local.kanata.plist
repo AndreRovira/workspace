@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent for Kanata (per-user, runs at login).
+
+  Kanata needs root to grab the keyboard, so this LaunchAgent uses sudo. For it
+  to start at login without a password prompt, you must add a NOPASSWD sudoers
+  rule for the kanata binary. See README → "Kanata setup".
+
+  Install:
+    cp macos/com.local.kanata.plist ~/Library/LaunchAgents/com.local.kanata.plist
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.local.kanata.plist
+
+  If your username is not "andre", edit the kanata.kbd path below.
+  Requires Karabiner-DriverKit-VirtualHIDDevice driver (installed by the
+  karabiner-elements cask).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.local.kanata</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/sudo</string>
+        <string>/opt/homebrew/bin/kanata</string>
+        <string>--cfg</string>
+        <string>/Users/andre/.config/kanata/kanata.kbd</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/kanata.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/kanata.stderr.log</string>
+</dict>
+</plist>

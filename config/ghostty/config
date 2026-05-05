@@ -1,0 +1,45 @@
+font-size = 24
+font-family = "JetBrainsMono Nerd Font"
+theme = Paul Millr
+maximize = true
+copy-on-select = clipboard
+macos-icon = holographic
+background-opacity = 0.6
+background-blur=16
+macos-titlebar-style = hidden
+macos-option-as-alt = true
+
+# CMD to CTRL mapping (mirrors WezTerm config)
+# CMD+C: SIGINT (copy is handled by copy-on-select)
+keybind = super+c=text:\x03
+# CMD+V: paste from clipboard
+keybind = super+v=paste_from_clipboard
+# All other CMD+letter → CTRL+letter
+keybind = super+a=text:\x01
+keybind = super+b=text:\x02
+keybind = super+d=text:\x04
+keybind = super+e=text:\x05
+keybind = super+f=text:\x06
+keybind = super+g=text:\x07
+keybind = super+h=text:\x08
+keybind = super+i=text:\x09
+keybind = super+j=text:\x0a
+keybind = super+k=text:\x0b
+keybind = super+l=text:\x0c
+keybind = super+m=text:\x0d
+keybind = super+n=text:\x0e
+keybind = super+o=text:\x0f
+keybind = super+p=text:\x10
+keybind = super+q=text:\x11
+keybind = super+r=text:\x12
+keybind = super+s=text:\x13
+keybind = super+t=text:\x14
+keybind = super+u=text:\x15
+keybind = super+w=text:\x17
+keybind = super+x=text:\x18
+keybind = super+y=text:\x19
+keybind = super+z=text:\x1a
+
+# Fix Alt+Left/Right (Ghostty defaults send \ef/\eb instead of proper Alt+Arrow)
+keybind = alt+left=unbind
+keybind = alt+right=unbind

@@ -1,0 +1,23 @@
+# SSH host aliases for multi-account GitHub.
+# Copy the blocks you need into ~/.ssh/config (which is NOT installed by this repo
+# because it commonly contains machine-specific entries).
+#
+# Workflow per account:
+#   1. ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_<name>
+#   2. Add the .pub key to that GitHub account
+#   3. Append the matching block below to ~/.ssh/config
+#   4. Add the includeIf rule to ~/.config/git/local.gitconfig (see README)
+#   5. Clone with: git clone git@github.com-<name>:org/repo.git
+
+Host github.com-personal
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_personal
+  IdentitiesOnly yes
+
+# Example for a second account — copy and rename as needed
+# Host github.com-work
+#   HostName github.com
+#   User git
+#   IdentityFile ~/.ssh/id_ed25519_work
+#   IdentitiesOnly yes

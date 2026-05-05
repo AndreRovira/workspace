@@ -1,0 +1,10 @@
+.DS_Store
+*.bak
+*.bak.*
+
+# Local-only files (kept out of repo)
+home/.zshrc.local
+ssh/config
+
+# Nvim (let it resolve fresh per machine)
+config/nvim/lazy-lock.json

@@ -1,0 +1,4 @@
+# Starship works fine with no configuration — this file exists so you have a
+# place to customize later. See https://starship.rs/config/ for the full reference.
+
+add_newline = true
