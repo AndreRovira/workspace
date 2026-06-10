@@ -33,5 +33,6 @@ cask "font-jetbrains-mono-nerd-font"
 
 # AI / editor
 cask "visual-studio-code"
-cask "claude-code"
 brew "sst/tap/opencode"
+# Claude Code is installed via its native auto-updating installer in install.sh,
+# not Homebrew — the brew cask doesn't auto-update.

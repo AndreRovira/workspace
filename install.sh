@@ -30,7 +30,16 @@ log "Installing packages from Brewfile…"
 brew bundle --file="$DIR/Brewfile"
 
 # ---------------------------------------------------------------------------
-# 3. XDG directories + state/cache subfolders that tools won't auto-create
+# 3. Claude Code (native, auto-updating). Not in Brewfile because the
+#    homebrew cask doesn't auto-update — the native installer does.
+# ---------------------------------------------------------------------------
+if ! command -v claude >/dev/null 2>&1; then
+  log "Installing Claude Code (native, stable channel)…"
+  curl -fsSL https://claude.ai/install.sh | bash -s stable
+fi
+
+# ---------------------------------------------------------------------------
+# 4. XDG directories + state/cache subfolders that tools won't auto-create
 # ---------------------------------------------------------------------------
 log "Creating XDG directories…"
 mkdir -p \
@@ -42,7 +51,7 @@ mkdir -p \
   ~/code/personal
 
 # ---------------------------------------------------------------------------
-# 4. Symlink dotfiles
+# 5. Symlink dotfiles
 # ---------------------------------------------------------------------------
 link() {
   local src="$1" dest="$2"
@@ -65,13 +74,13 @@ done
 link "$DIR/config/starship.toml" ~/.config/starship.toml
 
 # ---------------------------------------------------------------------------
-# 5. macOS defaults
+# 6. macOS defaults
 # ---------------------------------------------------------------------------
 log "Applying macOS defaults…"
 bash "$DIR/macos/defaults.sh"
 
 # ---------------------------------------------------------------------------
-# 6. Final notes
+# 7. Final notes
 # ---------------------------------------------------------------------------
 cat <<'EOF'
 
