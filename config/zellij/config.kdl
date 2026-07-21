@@ -112,7 +112,8 @@ keybinds clear-defaults=true {
         // Universal tabs: Cmd+T/Cmd+W (macOS) == Ctrl+T/Ctrl+W (Windows) via the byte map
         bind "Ctrl t" { NewTab; }
         bind "Ctrl w" { CloseTab; }
-        bind "Ctrl q" { Quit; }
+        // Ctrl+Q (= Cmd+Q) detaches — safe & reattachable; hard-kill via `zellij kill-session`
+        bind "Ctrl q" { Detach; }
     }
     shared_except "locked" "move" {
         bind "Ctrl h" { SwitchToMode "move"; }
