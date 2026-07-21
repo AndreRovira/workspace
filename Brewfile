@@ -23,7 +23,11 @@ cask "ghostty"
 
 # Homerow mods
 brew "kanata"
-cask "karabiner-elements"
+# NOTE: do NOT add `cask "karabiner-elements"`. Its bundled DriverKit driver
+# auto-updates to a client_protocol_version newer than kanata can speak, which
+# silently kills the built-in keyboard. kanata needs the standalone driver at a
+# pinned version instead — installed by macos/install-kanata-driver.sh.
+# See README → "Kanata setup".
 
 # Window/space management
 cask "alt-tab"

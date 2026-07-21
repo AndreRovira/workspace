@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchDaemon for the Karabiner VirtualHIDDevice daemon (system-wide, root).
+
+  kanata (com.local.kanata) emits its remapped keystrokes through the Karabiner
+  DriverKit virtual keyboard, which is served by this daemon. Karabiner-Elements
+  used to start the daemon for us, but we deliberately do NOT install full
+  Karabiner-Elements: its auto-updater bumps the DriverKit driver to a newer
+  client_protocol_version than kanata speaks, which silently breaks output and
+  leaves the built-in keyboard dead. So we run the standalone driver and start
+  the daemon ourselves here.
+
+  Version lock: kanata 1.11/1.12 speak client_protocol_version 5, which is
+  Karabiner-DriverKit-VirtualHIDDevice v6.2.0. Install that exact driver from
+  https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases
+  and activate it with the (hidden) VirtualHIDDevice-Manager:
+    sudo "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
+
+  Install this LaunchDaemon:
+    sudo cp macos/com.local.karabiner-vhidd.plist /Library/LaunchDaemons/
+    sudo chown root:wheel /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
+    sudo chmod 644       /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
+    sudo launchctl bootstrap system /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.local.karabiner-vhidd</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/karabiner-vhidd.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/karabiner-vhidd.stderr.log</string>
+</dict>
+</plist>

@@ -68,7 +68,7 @@ link "$DIR/home/.zshrc"     ~/.zshrc
 link "$DIR/home/.gitconfig" ~/.gitconfig
 
 log "Symlinking ~/.config entries…"
-for d in ghostty karabiner kanata nvim zellij; do
+for d in ghostty kanata nvim zellij; do
   link "$DIR/config/$d" ~/.config/$d
 done
 link "$DIR/config/starship.toml" ~/.config/starship.toml
@@ -87,8 +87,14 @@ cat <<'EOF'
 ✓ Bootstrap complete.
 
 Manual follow-ups (one-time):
-  1. Open Karabiner-Elements once and grant Input Monitoring permission.
-  2. Set up the Kanata LaunchDaemon — see README → "Kanata setup".
+  1. Kanata homerow mods — see README → "Kanata setup":
+       a. ./macos/install-kanata-driver.sh   (installs the pinned Karabiner
+          driver; approve the extension + reboot when it says to)
+       b. install the two LaunchDaemons (kanata + karabiner-vhidd)
+       c. grant Input Monitoring for /opt/homebrew/bin/kanata
+     Do NOT install Karabiner-Elements — it auto-updates the driver and breaks kanata.
+  2. Glove80 Cmd↔Ctrl swap — do it in Glove80 firmware or macOS Modifier Keys
+     (README → "Glove80 Cmd↔Ctrl swap"), NOT Karabiner-Elements.
   3. Create ~/.zshrc.local for any secrets (e.g. OPENAI_API_KEY).
   4. Generate SSH key for personal GitHub:
        ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_personal
