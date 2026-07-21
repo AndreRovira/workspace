@@ -48,7 +48,7 @@
 ;; - keys-for-hold spans all non-home-row alnum keys on BOTH hands, so the mods
 ;;   are not strictly bilateral — e.g. hold-A + Q gives Ctrl+Q (same hand).
 ;; - The whole HOME ROW is excluded from every list, so home-row pairs chord as
-;;   plain taps, not mod combos (F+J -> capital J; "ds" stays "ds", not Cmd+S).
+;;   plain taps, not mod combos ("fj" stays "fj" and "ds" stays "ds" — not Shift+J or Cmd+S).
 ;; - streak-decay + per-finger timeouts keep fast rolls as taps during typing.
 ;;
 ;; Format: (tap-hold-release-keys tap-timeout hold-timeout tap-action hold-action keys-for-hold)

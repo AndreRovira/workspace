@@ -39,9 +39,11 @@ Pull the repo; changes propagate by type:
 cd ~/code/personal/workspace && git pull
 ```
 
-- **Dotfiles & `~/.config` entries** (`home/*`, ghostty, kanata, nvim, zellij,
-  starship) are symlinks into this repo — edits go live the instant `git pull`
-  rewrites the files. Nothing else to run.
+- **Dotfiles & `~/.config` entries** (`home/*`, ghostty, nvim, zellij, starship)
+  are symlinks into this repo — edits go live the instant `git pull` rewrites the
+  files (a new shell / terminal window picks them up). **Kanata is the exception:**
+  `config/kanata/kanata.kbd` is read by the LaunchDaemon at launch, so after it
+  changes restart the daemon: `sudo launchctl kickstart -k system/com.local.kanata`.
 - **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run).
 - **Kanata driver & LaunchDaemons are NOT reapplied by `install.sh`.** If a pull
   changes `macos/install-kanata-driver.sh` (a `KARABINER_DRIVER_VERSION` bump) or a

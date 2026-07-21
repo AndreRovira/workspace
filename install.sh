@@ -37,7 +37,7 @@ brew bundle --file="$DIR/Brewfile" || log "⚠ Some Brewfile entries failed — 
 # ---------------------------------------------------------------------------
 if ! command -v claude >/dev/null 2>&1; then
   log "Installing Claude Code (native, stable channel)…"
-  curl -fsSL https://claude.ai/install.sh | bash -s stable
+  curl -fsSL https://claude.ai/install.sh | bash -s stable || log "⚠ Claude Code install failed — continuing so dotfiles still get linked. Install it later."
 fi
 
 # ---------------------------------------------------------------------------

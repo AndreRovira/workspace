@@ -32,8 +32,8 @@ eval "$(starship init zsh)"
 eval "$(fzf --zsh)"
 
 # Plugins (sourced before zoxide so they don't clobber its precmd hook)
-source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # Local-only overrides (gitignored — secrets, machine-specific tweaks)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
