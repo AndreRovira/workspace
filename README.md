@@ -1,9 +1,9 @@
 # workspace
 
 Personal Mac dotfiles + bootstrap. Optimized for a clean home directory using
-XDG base directories. No work tooling. GUI editors (VSCode, Claude Code, opencode)
-install fresh and configure themselves on first launch — only the terminal Neovim
-config is tracked here.
+XDG base directories. No work tooling. External editor/agent tools (VSCode, Claude
+Code, opencode) install fresh and self-configure on first launch — of the editors,
+only Neovim's config is tracked here.
 
 ## What's in here
 
@@ -31,6 +31,25 @@ cd ~/code/personal/workspace
 The script is safe to re-run; existing dotfiles get backed up to `*.backup`
 before being replaced with symlinks.
 
+## Updating an existing machine
+
+Pull the repo; changes propagate by type:
+
+```sh
+cd ~/code/personal/workspace && git pull
+```
+
+- **Dotfiles & `~/.config` entries** (`home/*`, ghostty, kanata, nvim, zellij,
+  starship) are symlinks into this repo — edits go live the instant `git pull`
+  rewrites the files. Nothing else to run.
+- **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run).
+- **Kanata driver & LaunchDaemons are NOT reapplied by `install.sh`.** If a pull
+  changes `macos/install-kanata-driver.sh` (a `KARABINER_DRIVER_VERSION` bump) or a
+  `macos/*.plist`, apply it by hand: re-run the driver script for a version bump,
+  or re-copy the changed plist and re-bootstrap it (see §4b and the Uninstall
+  snippet in §4). A driver↔kanata version mismatch is what silently kills the
+  built-in keyboard, so don't skip this after a driver bump.
+
 ## Manual follow-ups (one-time)
 
 ### 1. Personal email in git
@@ -46,6 +65,9 @@ pbcopy < ~/.ssh/id_ed25519_personal.pub  # then paste at github.com/settings/key
 ```
 
 Copy the relevant block from `ssh/config.example` into `~/.ssh/config`.
+
+Then run `gh auth login` to authenticate the GitHub CLI — this activates the git
+credential helper for HTTPS remotes (SSH remotes don't need it).
 
 ### 3. Glove80 Cmd↔Ctrl swap
 
@@ -186,6 +208,10 @@ in. Verify with `git config user.email` from inside the repo.
 ~/.config/git/local.gitconfig (machine-only, gitignored)
 ~/.ssh/config      (machine-only, edited by hand)
 ~/.ssh/id_ed25519_*    (machine-only, never committed)
+
+/Library/LaunchDaemons/com.local.kanata.plist          (copy of macos/…, re-copy on change)
+/Library/LaunchDaemons/com.local.karabiner-vhidd.plist (copy of macos/…, re-copy on change)
+Karabiner DriverKit driver   (system-wide, installed by macos/install-kanata-driver.sh; not symlinked)
 ```
 
 ## Editing configs

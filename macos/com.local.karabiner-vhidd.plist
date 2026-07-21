@@ -12,16 +12,14 @@
   the daemon ourselves here.
 
   Version lock: kanata 1.11/1.12 speak client_protocol_version 5, which is
-  Karabiner-DriverKit-VirtualHIDDevice v6.2.0. Install that exact driver from
-  https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases
-  and activate it with the (hidden) VirtualHIDDevice-Manager:
-    sudo "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
+  Karabiner-DriverKit-VirtualHIDDevice v6.2.0. Install + activate that pinned
+  driver with macos/install-kanata-driver.sh — it verifies the pkg's notarization
+  and pqrs.org team id (G43BCU2T37) before installing. Do NOT hand-download the
+  driver or install Karabiner-Elements. See README → "Kanata setup" §4a.
 
-  Install this LaunchDaemon:
-    sudo cp macos/com.local.karabiner-vhidd.plist /Library/LaunchDaemons/
-    sudo chown root:wheel /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
-    sudo chmod 644       /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
-    sudo launchctl bootstrap system /Library/LaunchDaemons/com.local.karabiner-vhidd.plist
+  Install this LaunchDaemon the same way as com.local.kanata.plist — see
+  README → "Kanata setup" §4b (sudo install -m 644 -o root -g wheel … then
+  sudo launchctl bootstrap system …).
 -->
 <plist version="1.0">
 <dict>

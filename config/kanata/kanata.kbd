@@ -43,13 +43,15 @@
 )
 
 ;; Home row mod aliases
-;; Using tap-hold-release-keys for bilateral combinations:
-;; - Only triggers modifier when combined with keys on the OPPOSITE hand (non-home-row)
-;; - Same-hand key presses produce normal taps (prevents misfires like "ds" -> Cmd+S)
-;; - Opposite-hand HOME ROW MODS are EXCLUDED to allow chording (e.g., F+J -> capital J)
+;; Using tap-hold-release-keys: the last arg (keys-for-hold) lists the keys that,
+;; pressed while a home-row key is held, fire that key's MODIFIER early.
+;; - keys-for-hold spans all non-home-row alnum keys on BOTH hands, so the mods
+;;   are not strictly bilateral — e.g. hold-A + Q gives Ctrl+Q (same hand).
+;; - The whole HOME ROW is excluded from every list, so home-row pairs chord as
+;;   plain taps, not mod combos (F+J -> capital J; "ds" stays "ds", not Cmd+S).
+;; - streak-decay + per-finger timeouts keep fast rolls as taps during typing.
 ;;
 ;; Format: (tap-hold-release-keys tap-timeout hold-timeout tap-action hold-action keys-for-hold)
-;; The last argument lists which keys trigger the hold behavior (opposite hand non-home-row keys)
 
 (defalias
   ;; Left hand home row mods
