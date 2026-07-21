@@ -19,6 +19,7 @@ brew "gh"
 
 # Multiplexer + terminal
 brew "zellij"
+brew "herdr"        # terminal agent multiplexer (herdr.dev)
 cask "ghostty"
 
 # Homerow mods
