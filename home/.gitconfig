@@ -25,3 +25,9 @@
 # Git silently skips this if the file does not exist.
 [include]
 	path = ~/.config/git/local.gitconfig
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
