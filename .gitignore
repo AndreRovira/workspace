@@ -1,6 +1,7 @@
 .DS_Store
 *.bak
 *.bak.*
+*.backup
 
 # Local-only files (kept out of repo)
 home/.zshrc.local

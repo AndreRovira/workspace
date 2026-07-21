@@ -8,8 +8,9 @@
   setup" for installation.
 
   If your username is not "andre", edit the kanata.kbd path below.
-  Requires Karabiner-DriverKit-VirtualHIDDevice driver (installed by the
-  karabiner-elements cask).
+  Requires the Karabiner-DriverKit-VirtualHIDDevice driver at the pinned version
+  installed by macos/install-kanata-driver.sh. Do NOT install Karabiner-Elements —
+  its auto-updated driver breaks kanata. See README → "Kanata setup".
 -->
 <plist version="1.0">
 <dict>

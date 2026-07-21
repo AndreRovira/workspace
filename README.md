@@ -1,8 +1,9 @@
 # workspace
 
 Personal Mac dotfiles + bootstrap. Optimized for a clean home directory using
-XDG base directories. No work tooling, no AI/editor configs synced — those tools
-install fresh and configure themselves on first launch.
+XDG base directories. No work tooling. GUI editors (VSCode, Claude Code, opencode)
+install fresh and configure themselves on first launch — only the terminal Neovim
+config is tracked here.
 
 ## What's in here
 
@@ -34,7 +35,8 @@ before being replaced with symlinks.
 
 ### 1. Personal email in git
 
-Edit `home/.gitconfig` and replace the placeholder email. Commit & push.
+`home/.gitconfig` already carries the personal email. Only change it (and commit &
+push) if you're setting this account up under a different identity.
 
 ### 2. SSH key for personal GitHub
 
@@ -130,8 +132,9 @@ export OPENAI_API_KEY="sk-..."
 
 ### 6. Apps installed but not configured here
 
-VSCode, Claude Code, and opencode install via Brewfile but their configs are
-**not** synced. Sign in / configure each on first launch — fresh start by design.
+VSCode and opencode install via Brewfile; Claude Code installs via its native
+auto-updating installer in `install.sh`. None of their configs are synced — sign
+in / configure each on first launch, fresh start by design.
 
 ## Adding a second GitHub account
 

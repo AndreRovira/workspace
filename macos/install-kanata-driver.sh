@@ -30,8 +30,9 @@ fi
 log "Downloading Karabiner driver v${KARABINER_DRIVER_VERSION}…"
 curl -fL --progress-bar -o "$PKG" "$PKG_URL"
 
-log "Verifying the package is Apple-notarized (team G43BCU2T37, pqrs.org)…"
-if ! pkgutil --check-signature "$PKG" | grep -q "Notarization: trusted"; then
+log "Verifying the package is Apple-notarized AND signed by pqrs.org (team G43BCU2T37)…"
+SIG="$(pkgutil --check-signature "$PKG" 2>&1 || true)"
+if ! grep -q "Notarization: trusted" <<<"$SIG" || ! grep -q "G43BCU2T37" <<<"$SIG"; then
   echo "Signature/notarization check FAILED — refusing to install. Delete $PKG and retry."; exit 1
 fi
 
