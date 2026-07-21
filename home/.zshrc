@@ -10,8 +10,10 @@ setopt INC_APPEND_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search      # CSI (normal cursor-key mode)
 bindkey '^[[B' down-line-or-beginning-search
+bindkey '^[OA' up-line-or-beginning-search      # SS3 (application cursor-key mode)
+bindkey '^[OB' down-line-or-beginning-search
 
 # Completion (cache lives under XDG_CACHE_HOME)
 autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"

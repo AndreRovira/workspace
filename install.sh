@@ -27,7 +27,9 @@ fi
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 log "Installing packages from Brewfile…"
-brew bundle --file="$DIR/Brewfile"
+# Don't let one failed formula/cask (e.g. an app already installed by hand) abort
+# the whole bootstrap under `set -e` — the dotfile symlinks below matter more.
+brew bundle --file="$DIR/Brewfile" || log "⚠ Some Brewfile entries failed — continuing so dotfiles still get linked. Fix them and re-run."
 
 # ---------------------------------------------------------------------------
 # 3. Claude Code (native, auto-updating). Not in Brewfile because the
@@ -99,6 +101,7 @@ Manual follow-ups (one-time):
   4. Generate SSH key for personal GitHub:
        ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_personal
      Then add the .pub key at https://github.com/settings/keys
-  5. Restart your shell (or `exec zsh`).
+  5. Run `gh auth login` to authenticate the GitHub CLI (HTTPS credential helper).
+  6. Restart your shell (or `exec zsh`).
 
 EOF

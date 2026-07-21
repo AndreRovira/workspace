@@ -16,8 +16,12 @@ defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
 
 # Trackpad ----------------------------------------------------------------
+# Tap to click on external Magic Trackpad, the built-in trackpad, and the
+# per-host (ByHost) copy the login window reads.
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
 defaults write -g com.apple.mouse.tapBehavior -int 1
+defaults -currentHost write -g com.apple.mouse.tapBehavior -int 1
 
 # Finder ------------------------------------------------------------------
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
