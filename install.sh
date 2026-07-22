@@ -38,8 +38,10 @@ ask() {
 link() {
   local src="$1" dest="$2"
   if [[ -e "$dest" && ! -L "$dest" ]]; then
-    log "Backing up existing $dest → $dest.backup"
-    mv "$dest" "$dest.backup"
+    local bak="$dest.backup"
+    [[ -e "$bak" ]] && bak="$dest.backup.$(date +%Y%m%d%H%M%S)"   # never clobber an old backup
+    log "Backing up existing $dest → $bak"
+    mv "$dest" "$bak"
   fi
   ln -sfn "$src" "$dest"
 }
@@ -150,6 +152,10 @@ if [[ "$OS" == "Darwin" && "$KANATA" == "1" ]]; then
   note "  • Finish kanata: ./macos/install-kanata-driver.sh (approve + reboot), then install"
   note "    the two LaunchDaemons and grant Input Monitoring — see README → \"Kanata setup\"."
   note "  • Glove80 Cmd↔Ctrl swap — see README → \"Glove80 Cmd↔Ctrl swap\"."
+fi
+if [[ "$OS" == "Linux" ]]; then
+  note "  • Make zsh your login shell so these configs load (Ubuntu ships bash):"
+  note "      sudo apt install -y zsh && chsh -s \"\$(which zsh)\"   # then log out/in"
 fi
 note "  • Create ~/.zshrc.local for secrets / machine-specific PATH (gitignored)."
 note "  • SSH key + GitHub CLI:"

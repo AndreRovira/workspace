@@ -19,7 +19,11 @@ bindkey '^[[B' down-line-or-beginning-search
 bindkey '^[OA' up-line-or-beginning-search      # SS3 (application cursor-key mode)
 bindkey '^[OB' down-line-or-beginning-search
 
-# Completion (cache lives under XDG_CACHE_HOME)
+# Completion (cache lives under XDG_CACHE_HOME). Self-heal the zsh cache/state dirs
+# so a wiped ~/.cache — or a symlink-only try before ./install.sh — doesn't silently
+# break completion caching and history persistence.
+[[ -d "$XDG_CACHE_HOME/zsh" ]] || mkdir -p "$XDG_CACHE_HOME/zsh"
+[[ -d "$XDG_STATE_HOME/zsh" ]] || mkdir -p "$XDG_STATE_HOME/zsh"
 autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
 
 # Aliases — guarded so a fresh clone (before ./install.sh) keeps working ls/cat/etc.

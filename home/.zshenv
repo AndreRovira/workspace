@@ -7,6 +7,7 @@ export XDG_CACHE_HOME="$HOME/.cache"
 # User-installed binaries (curl-installed Claude Code, pipx, etc.)
 # Set in .zshenv (not .zshrc) so brew shellenv runs after and keeps
 # /opt/homebrew/bin ahead of ~/.local/bin in PATH precedence.
+typeset -U path PATH          # dedupe PATH across nested / re-exec'd shells
 export PATH="$HOME/.local/bin:$PATH"
 
 # Redirect dotfile sprawl that would otherwise land in $HOME

@@ -39,7 +39,8 @@ before being replaced with symlinks.
 
 **On macOS** it installs the core CLI, then asks whether to install the GUI apps
 (`Brewfile.macos`), set up kanata, and apply the macOS system defaults. Pre-answer
-non-interactively with env vars, e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 ./install.sh`.
+non-interactively with env vars (`INSTALL_GUI` / `INSTALL_KANATA` / `INSTALL_DEFAULTS`),
+e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 INSTALL_DEFAULTS=0 ./install.sh`.
 
 **On Linux / WSL2** it installs only the cross-platform core (CLI tools + shell,
 Neovim, zellij, starship, git configs) — no GUI casks, no kanata, no system
@@ -49,6 +50,10 @@ defaults. Homebrew on Linux (Linuxbrew) needs build prerequisites first:
 WSL2/Ubuntu also ships **bash**, so install zsh and make it your login shell or the
 symlinked configs never load: `sudo apt install -y zsh && chsh -s "$(which zsh)"`
 (log out/in to take effect). macOS already uses zsh — no action needed there.
+
+Neovim's UI uses Nerd Font glyphs and the font cask is macOS-only, so on Linux/WSL2
+set your host terminal (e.g. Windows Terminal) to a Nerd Font like JetBrainsMono
+Nerd Font.
 
 ## Updating an existing machine
 
@@ -63,7 +68,9 @@ cd ~/code/personal/workspace && git pull
   files (a new shell / terminal window picks them up). **Kanata is the exception:**
   `config/kanata/kanata.kbd` is read by the LaunchDaemon at launch, so after it
   changes restart the daemon: `sudo launchctl kickstart -k system/com.local.kanata`.
-- **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run).
+- **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run). Note
+  `brew bundle` only *adds* — a formula removed from the Brewfile stays installed until
+  you `brew uninstall` it by hand.
 - **Kanata driver & LaunchDaemons are NOT reapplied by `install.sh`.** If a pull
   changes `macos/install-kanata-driver.sh` (a `KARABINER_DRIVER_VERSION` bump) or a
   `macos/*.plist`, apply it by hand: re-run the driver script for a version bump,
@@ -82,7 +89,8 @@ push) if you're setting this account up under a different identity.
 
 ```sh
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_personal -C "personal"
-pbcopy < ~/.ssh/id_ed25519_personal.pub  # then paste at github.com/settings/keys
+cat ~/.ssh/id_ed25519_personal.pub   # copy the output, add it at github.com/settings/keys
+# clipboard: macOS `pbcopy <` · WSL2 `clip.exe <` · Wayland `wl-copy <` · X11 `xclip -selection clipboard <`
 ```
 
 Copy the relevant block from `ssh/config.example` into `~/.ssh/config`.

@@ -18,7 +18,10 @@ set -euo pipefail
 
 KARABINER_DRIVER_VERSION="6.2.0"   # kanata 1.11/1.12 -> client_protocol_version 5
 PKG_URL="https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases/download/v${KARABINER_DRIVER_VERSION}/Karabiner-DriverKit-VirtualHIDDevice-${KARABINER_DRIVER_VERSION}.pkg"
-PKG="/tmp/Karabiner-DriverKit-VirtualHIDDevice-${KARABINER_DRIVER_VERSION}.pkg"
+# Stage the download in a private per-run dir so the verify→install path can't be
+# swapped by another process (TOCTOU) via a predictable /tmp name; cleaned on exit.
+WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
+PKG="$WORK/Karabiner-DriverKit-VirtualHIDDevice-${KARABINER_DRIVER_VERSION}.pkg"
 MGR="/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager"
 
 log() { printf '\n▶ %s\n' "$*"; }
@@ -33,7 +36,7 @@ curl -fL --progress-bar -o "$PKG" "$PKG_URL"
 log "Verifying the package is Apple-notarized AND signed by pqrs.org (team G43BCU2T37)…"
 SIG="$(pkgutil --check-signature "$PKG" 2>&1 || true)"
 if ! grep -q "Notarization: trusted" <<<"$SIG" || ! grep -q "G43BCU2T37" <<<"$SIG"; then
-  echo "Signature/notarization check FAILED — refusing to install. Delete $PKG and retry."; exit 1
+  echo "Signature/notarization check FAILED — refusing to install. Re-run to re-download."; exit 1
 fi
 
 log "Installing the driver (sudo)…"
