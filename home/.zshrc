@@ -1,9 +1,13 @@
 # Homebrew — load from wherever it lives (Apple Silicon, Intel, or Linuxbrew).
-for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew \
-             /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
-  [[ -x "$_brew" ]] && eval "$("$_brew" shellenv)" && break
-done
-unset _brew
+# Only detect+eval when a parent shell hasn't already exported it — skips the
+# brew-shellenv fork in nested shells / zellij panes that inherit the env.
+if [[ -z "${HOMEBREW_PREFIX:-}" ]]; then
+  for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew \
+               /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
+    [[ -x "$_brew" ]] && eval "$("$_brew" shellenv)" && break
+  done
+  unset _brew
+fi
 
 # History
 HISTSIZE=50000
