@@ -175,10 +175,10 @@ export OPENAI_API_KEY="sk-..."
 
 ### 6. Apps installed but not configured here
 
-opencode installs via `Brewfile` (core); VS Code via `Brewfile.macos` (macOS GUI,
-opt-in); Claude Code via its native auto-updating installer in `install.sh`. None
-of their configs are synced — sign in / configure each on first launch, fresh
-start by design.
+herdr and opencode install via `Brewfile` (core); VS Code via `Brewfile.macos`
+(macOS GUI, opt-in); Claude Code via its native auto-updating installer in
+`install.sh`. None of their configs are synced — sign in / configure each on first
+launch, fresh start by design.
 
 ## Adding a second GitHub account
 

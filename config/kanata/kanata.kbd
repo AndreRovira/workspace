@@ -43,15 +43,17 @@
 )
 
 ;; Home row mod aliases
-;; Using tap-hold-release-keys: the last arg (keys-for-hold) lists the keys that,
-;; pressed while a home-row key is held, fire that key's MODIFIER early.
-;; - keys-for-hold spans all non-home-row alnum keys on BOTH hands, so the mods
-;;   are not strictly bilateral — e.g. hold-A + Q gives Ctrl+Q (same hand).
-;; - The whole HOME ROW is excluded from every list, so home-row pairs chord as
-;;   plain taps, not mod combos ("fj" stays "fj" and "ds" stays "ds" — not Shift+J or Cmd+S).
-;; - streak-decay + per-finger timeouts keep fast rolls as taps during typing.
-;;
-;; Format: (tap-hold-release-keys tap-timeout hold-timeout tap-action hold-action keys-for-hold)
+;; Using tap-hold-release-keys. Signature:
+;;   (tap-hold-release-keys tap-timeout hold-timeout tap-action hold-action tap-keys)
+;; The final list (tap-keys) is kanata's EARLY-TAP set: pressing one of those keys while a
+;; home-row key is held forces the home-row key to resolve as a plain TAP (its letter) and
+;; SUPPRESSES the modifier — roll/misfire protection. E.g. hold-A + Q yields "aq", NOT Ctrl+Q.
+;; Each list is every non-home-row alnum key on both hands.
+;; - The HOME ROW is deliberately EXCLUDED from the lists, so a held home-row mod plus another
+;;   home-row key is not force-tapped and can resolve to the modifier — that is what enables
+;;   home-row-mod chording (see the per-alias notes below).
+;; - Otherwise the modifier fires on the per-finger hold-timeout; streak-decay keeps fast
+;;   rolls as taps.
 
 (defalias
   ;; Left hand home row mods
