@@ -109,9 +109,10 @@ keybinds clear-defaults=true {
         bind "Alt i" { MoveTab "left"; }
         bind "Alt o" { MoveTab "right"; }
         bind "Alt n" { NewPane; }
-        // Universal tabs: Cmd+T/Cmd+W (macOS) == Ctrl+T/Ctrl+W (Windows) via the byte map
+        // Universal tab ops: Cmd+T / Cmd+W / Cmd+R (macOS) == Ctrl+T/W/R (Windows) — new / close / rename
         bind "Ctrl t" { NewTab; }
         bind "Ctrl w" { CloseTab; }
+        bind "Ctrl r" { SwitchToMode "renametab"; TabNameInput 0; }
         // Ctrl+Q (= Cmd+Q) detaches — safe & reattachable; hard-kill via `zellij kill-session`
         bind "Ctrl q" { Detach; }
     }
@@ -167,6 +168,9 @@ keybinds clear-defaults=true {
     }
     shared_among "renametab" "renamepane" {
         bind "Ctrl c" { SwitchToMode "normal"; }
+    }
+    renametab {
+        bind "esc" { UndoRenameTab; SwitchToMode "normal"; }
     }
     renamepane {
         bind "esc" { UndoRenamePane; SwitchToMode "pane"; }
