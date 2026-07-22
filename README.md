@@ -1,16 +1,22 @@
 # workspace
 
-Personal Mac dotfiles + bootstrap. Optimized for a clean home directory using
-XDG base directories. No work tooling. External editor/agent tools (VSCode, Claude
-Code, opencode) install fresh and self-configure on first launch — of the editors,
-only Neovim's config is tracked here.
+Personal dotfiles + bootstrap for macOS and Linux/WSL2. Optimized for a clean home
+directory using XDG base directories. No work tooling. External editor/agent tools install fresh
+and self-configure on first launch (Claude Code and opencode everywhere; VS Code
+on macOS when you opt into GUI apps) — of the editors, only Neovim's config is
+tracked here.
+
+`install.sh` auto-detects the OS: macOS gets the full stack (and prompts for the
+optional GUI apps / kanata / system defaults); Linux/WSL2 gets the cross-platform
+core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 
 ## What's in here
 
 | Path | Purpose |
 |------|---------|
-| `Brewfile` | Declarative install of every CLI/cask |
-| `install.sh` | Idempotent bootstrap (Homebrew → packages → symlinks → macOS defaults) |
+| `Brewfile` | Core CLI packages — cross-platform (macOS + Linux/WSL2) |
+| `Brewfile.macos` | macOS-only GUI apps (Ghostty, VS Code, Alt-Tab, Nerd Font) — opt-in |
+| `install.sh` | Idempotent bootstrap; auto-detects OS, prompts for macOS extras |
 | `home/` | `.zshenv`, `.zshrc`, `.gitconfig` — symlinked into `$HOME` |
 | `config/` | Mirror of `~/.config/` — ghostty, kanata, nvim, starship, zellij |
 | `macos/defaults.sh` | Sensible system defaults |
@@ -20,7 +26,7 @@ only Neovim's config is tracked here.
 | `config/karabiner/` | Legacy Karabiner-Elements config — kept only to document the old Glove80 Cmd↔Ctrl swap (see §3) |
 | `ssh/config.example` | Multi-account GitHub recipe (NOT auto-installed) |
 
-## Bootstrap a fresh Mac
+## Bootstrap a fresh machine
 
 ```sh
 git clone <this-repo> ~/code/personal/workspace
@@ -30,6 +36,19 @@ cd ~/code/personal/workspace
 
 The script is safe to re-run; existing dotfiles get backed up to `*.backup`
 before being replaced with symlinks.
+
+**On macOS** it installs the core CLI, then asks whether to install the GUI apps
+(`Brewfile.macos`), set up kanata, and apply the macOS system defaults. Pre-answer
+non-interactively with env vars, e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 ./install.sh`.
+
+**On Linux / WSL2** it installs only the cross-platform core (CLI tools + shell,
+Neovim, zellij, starship, git configs) — no GUI casks, no kanata, no system
+defaults. Homebrew on Linux (Linuxbrew) needs build prerequisites first:
+`sudo apt install -y build-essential procps curl file git`.
+
+WSL2/Ubuntu also ships **bash**, so install zsh and make it your login shell or the
+symlinked configs never load: `sudo apt install -y zsh && chsh -s "$(which zsh)"`
+(log out/in to take effect). macOS already uses zsh — no action needed there.
 
 ## Updating an existing machine
 
@@ -156,9 +175,10 @@ export OPENAI_API_KEY="sk-..."
 
 ### 6. Apps installed but not configured here
 
-VSCode and opencode install via Brewfile; Claude Code installs via its native
-auto-updating installer in `install.sh`. None of their configs are synced — sign
-in / configure each on first launch, fresh start by design.
+opencode installs via `Brewfile` (core); VS Code via `Brewfile.macos` (macOS GUI,
+opt-in); Claude Code via its native auto-updating installer in `install.sh`. None
+of their configs are synced — sign in / configure each on first launch, fresh
+start by design.
 
 ## Adding a second GitHub account
 
