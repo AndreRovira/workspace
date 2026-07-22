@@ -1,3 +1,7 @@
+# Core CLI — cross-platform (macOS + Linux/WSL2 via Homebrew).
+# macOS GUI apps live in Brewfile.macos; kanata is installed by install.sh when
+# you opt in. Both are macOS-only.
+
 # Shell
 brew "starship"
 brew "zsh-autosuggestions"
@@ -17,27 +21,11 @@ brew "lazygit"
 brew "git"
 brew "gh"
 
-# Multiplexer + terminal
+# Multiplexer + terminal agents
 brew "zellij"
 brew "herdr"        # terminal agent multiplexer (herdr.dev)
-cask "ghostty"
 
-# Homerow mods
-brew "kanata"
-# NOTE: do NOT add `cask "karabiner-elements"`. Its bundled DriverKit driver
-# auto-updates to a client_protocol_version newer than kanata can speak, which
-# silently kills the built-in keyboard. kanata needs the standalone driver at a
-# pinned version instead — installed by macos/install-kanata-driver.sh.
-# See README → "Kanata setup".
-
-# Window/space management
-cask "alt-tab"
-
-# Font
-cask "font-jetbrains-mono-nerd-font"
-
-# AI / editor
-cask "visual-studio-code"
+# AI / coding
 brew "sst/tap/opencode"
 # Claude Code is installed via its native auto-updating installer in install.sh,
-# not Homebrew — the brew cask doesn't auto-update.
+# not Homebrew — the brew cask doesn't auto-update. It's a cross-platform CLI.

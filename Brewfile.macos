@@ -1,0 +1,15 @@
+# macOS-only apps. Installed by install.sh on macOS when you opt into "GUI apps".
+# kanata is NOT here: install.sh installs it separately (it needs the manual
+# DriverKit-driver + LaunchDaemon setup afterward) and prompts for it on its own.
+# Do NOT add cask "karabiner-elements" — its auto-updating DriverKit driver breaks
+# kanata (see README → "Kanata setup").
+
+# Terminal + window management
+cask "ghostty"
+cask "alt-tab"
+
+# Font
+cask "font-jetbrains-mono-nerd-font"
+
+# Editor
+cask "visual-studio-code"

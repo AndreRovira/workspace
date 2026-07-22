@@ -1,5 +1,9 @@
-# Homebrew
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Homebrew — load from wherever it lives (Apple Silicon, Intel, or Linuxbrew).
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew \
+             /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
+  [[ -x "$_brew" ]] && eval "$("$_brew" shellenv)" && break
+done
+unset _brew
 
 # History
 HISTSIZE=50000
@@ -18,22 +22,26 @@ bindkey '^[OB' down-line-or-beginning-search
 # Completion (cache lives under XDG_CACHE_HOME)
 autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
 
-# Aliases
-alias cat='bat --plain --paging=never'
-alias ls='eza --group-directories-first'
-alias la='eza -al --group-directories-first'
-alias ll='eza -l --group-directories-first'
-alias tree='eza --tree'
-alias lg='lazygit'
-alias v='nvim'
+# Aliases — guarded so a fresh clone (before ./install.sh) keeps working ls/cat/etc.
+if command -v eza >/dev/null; then
+  alias ls='eza --group-directories-first'
+  alias la='eza -al --group-directories-first'
+  alias ll='eza -l --group-directories-first'
+  alias tree='eza --tree'
+fi
+command -v bat     >/dev/null && alias cat='bat --plain --paging=never'
+command -v lazygit >/dev/null && alias lg='lazygit'
+command -v nvim    >/dev/null && alias v='nvim'
 
-# Tools
-eval "$(starship init zsh)"
-eval "$(fzf --zsh)"
+# Tools — guarded so a fresh clone (before ./install.sh) doesn't error on startup
+command -v starship >/dev/null && eval "$(starship init zsh)"
+command -v fzf      >/dev/null && eval "$(fzf --zsh)"
 
 # Plugins (sourced before zoxide so they don't clobber its precmd hook)
-source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[[ -r "${HOMEBREW_PREFIX:-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] \
+  && source "${HOMEBREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -r "${HOMEBREW_PREFIX:-}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
+  && source "${HOMEBREW_PREFIX}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # Local-only overrides (gitignored — secrets, machine-specific tweaks)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
@@ -42,4 +50,4 @@ source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.z
 # _ZO_DOCTOR=0 silences a spurious "init not at end" warning that fires every
 # shell even when init is correctly placed last (see zoxide init zsh source).
 export _ZO_DOCTOR=0
-eval "$(zoxide init zsh --cmd cd)"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh --cmd cd)"
