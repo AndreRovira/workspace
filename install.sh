@@ -70,6 +70,11 @@ unset _b
 # ---------------------------------------------------------------------------
 # 2. Packages — core everywhere; GUI apps only on macOS (prompted)
 # ---------------------------------------------------------------------------
+# opencode ships from a third-party tap; Homebrew 6+ refuses to load formulae from
+# untrusted taps, so trust it before `brew bundle` tries to load the formula.
+brew tap sst/tap >/dev/null 2>&1 || true
+brew trust --tap sst/tap >/dev/null 2>&1 || true
+
 log "Installing core packages (Brewfile)…"
 brew bundle --file="$DIR/Brewfile" \
   || log "⚠ Some core Brewfile entries failed — continuing so dotfiles still get linked. Fix them and re-run."
