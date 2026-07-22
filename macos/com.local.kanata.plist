@@ -11,6 +11,12 @@
   Requires the Karabiner-DriverKit-VirtualHIDDevice driver at the pinned version
   installed by macos/install-kanata-driver.sh. Do NOT install Karabiner-Elements —
   its auto-updated driver breaks kanata. See README → "Kanata setup".
+
+  Security note: this runs /opt/homebrew/bin/kanata as root, and the Homebrew prefix
+  is user-writable on Apple Silicon — so anything running as your user could replace
+  that binary and gain root at the next relaunch. Accepted on a single-user machine.
+  To fully lock it down, copy kanata to a root-owned path (e.g. /usr/local/sbin) and
+  point ProgramArguments there, re-copying after each `brew upgrade kanata`.
 -->
 <plist version="1.0">
 <dict>
@@ -27,8 +33,8 @@
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/kanata.stdout.log</string>
+    <string>/var/log/kanata/kanata.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/kanata.stderr.log</string>
+    <string>/var/log/kanata/kanata.err.log</string>
 </dict>
 </plist>

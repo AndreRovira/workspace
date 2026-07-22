@@ -34,8 +34,8 @@
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/karabiner-vhidd.stdout.log</string>
+    <string>/var/log/kanata/karabiner-vhidd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/karabiner-vhidd.stderr.log</string>
+    <string>/var/log/kanata/karabiner-vhidd.err.log</string>
 </dict>
 </plist>

@@ -129,7 +129,7 @@ kanata itself, and the Karabiner virtual-HID daemon kanata sends output to.
 > bundles that driver and **auto-updates** it; when it moved to protocol 7 (driver
 > v8.0.0), kanata (protocol 5 / driver **v6.2.0**) could no longer connect and the
 > built-in keyboard went dead — the only clue being `connect_failed asio.system:2`
-> spamming `/tmp/kanata.stdout.log`. So we install the **standalone driver at a
+> spamming `/var/log/kanata/kanata.out.log`. So we install the **standalone driver at a
 > pinned version** and never install Karabiner-Elements. Bump the version in
 > `macos/install-kanata-driver.sh` only when kanata's release notes change the
 > supported driver version.
@@ -141,9 +141,11 @@ tells you:
 ./macos/install-kanata-driver.sh
 ```
 
-**b. Install both LaunchDaemons** (root-owned, mode 644):
+**b. Install both LaunchDaemons** (root-owned, mode 644). First create the root-owned
+log dir they write to (the daemons log to `/var/log/kanata`, not world-writable `/tmp`):
 
 ```sh
+sudo install -d -o root -g wheel -m 755 /var/log/kanata
 for p in com.local.karabiner-vhidd com.local.kanata; do
   sudo install -m 644 -o root -g wheel "macos/$p.plist" "/Library/LaunchDaemons/$p.plist"
   sudo launchctl bootstrap system "/Library/LaunchDaemons/$p.plist"
@@ -159,7 +161,14 @@ Monitoring** for `/opt/homebrew/bin/kanata` (click `+`, ⌘⇧G, paste the path)
 If your username is not `andre`, edit the `--cfg` path inside
 `com.local.kanata.plist` before installing.
 
-**Logs & health:** kanata → `/tmp/kanata.stdout.log` (+ `.stderr.log`); Karabiner
+> **Security note:** these daemons run as root, and kanata's binary lives in the
+> user-writable Homebrew prefix — so code running as your user could replace it and
+> gain root at the next relaunch. Accepted here (single-user machine). To fully lock
+> it down, copy kanata to a root-owned path (e.g. `/usr/local/sbin`) and point
+> `com.local.kanata.plist`'s `ProgramArguments` there, re-copying after each
+> `brew upgrade kanata`.
+
+**Logs & health:** kanata → `/var/log/kanata/kanata.out.log` (+ `.err.log`); Karabiner
 daemon → `/var/log/karabiner/virtual_hid_device_service.log`. A healthy kanata log
 shows `entering the processing loop` and `driver version matched: true`, with no
 `connect_failed`. The daemon log should show `client_protocol_version 5`.
