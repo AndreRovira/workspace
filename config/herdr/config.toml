@@ -1,0 +1,26 @@
+[ui]
+agent_panel_sort = "spaces"
+
+show_agent_labels_on_pane_borders = false
+[ui.toast]
+delivery = "system"
+
+[theme]
+name = "terminal"
+auto_switch = false
+
+[keys]
+prefix = "ctrl+b"
+
+# Direct ops via Ghostty's Cmd->Ctrl byte map
+new_tab       = "ctrl+n"    # Cmd+N -> new tab
+new_workspace = "ctrl+t"    # Cmd+T -> new space (you'll use these more)
+rename_tab    = "ctrl+r"    # Cmd+R -> rename tab
+close_tab     = "ctrl+w"    # Cmd+W -> close tab
+detach        = "ctrl+q"    # Cmd+Q -> detach (like zellij)
+
+# Nav — jkl; AND arrows, both bound. Tabs = left/right, spaces = up/down.
+previous_tab       = ["alt+j", "alt+left"]
+next_tab           = ["alt+;", "alt+right"]
+previous_workspace = ["alt+k", "alt+up"]
+next_workspace     = ["alt+l", "alt+down"]

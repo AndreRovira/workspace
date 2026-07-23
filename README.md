@@ -18,7 +18,7 @@ core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 | `Brewfile.macos` | macOS-only GUI apps (Ghostty, VS Code, Alt-Tab, Nerd Font) — opt-in |
 | `install.sh` | Idempotent bootstrap; auto-detects OS, prompts for macOS extras |
 | `home/` | `.zshenv`, `.zshrc`, `.gitconfig` — symlinked into `$HOME` |
-| `config/` | Mirror of `~/.config/` — ghostty, kanata, nvim, starship, zellij |
+| `config/` | Mirror of `~/.config/` — ghostty, herdr, kanata, nvim, starship, zellij |
 | `macos/defaults.sh` | Sensible system defaults |
 | `macos/install-kanata-driver.sh` | Installs the pinned Karabiner DriverKit driver kanata needs |
 | `macos/com.local.kanata.plist` | LaunchDaemon: kanata (homerow mods) |
@@ -244,6 +244,7 @@ in. Verify with `git config user.email` from inside the repo.
 ~/.config/nvim/      → workspace/config/nvim/       (symlink)
 ~/.config/zellij/    → workspace/config/zellij/     (symlink)
 ~/.config/starship.toml → workspace/config/starship.toml (symlink)
+~/.config/herdr/config.toml → workspace/config/herdr/config.toml (symlink)
 ~/.config/git/local.gitconfig (machine-only, gitignored)
 ~/.ssh/config      (machine-only, edited by hand)
 ~/.ssh/id_ed25519_*    (machine-only, never committed)

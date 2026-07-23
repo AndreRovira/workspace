@@ -105,7 +105,7 @@ fi
 # ---------------------------------------------------------------------------
 log "Creating XDG directories…"
 mkdir -p \
-  ~/.config ~/.local/share ~/.local/state/zsh ~/.cache/zsh ~/.config/git ~/code/personal
+  ~/.config ~/.config/herdr ~/.local/share ~/.local/state/zsh ~/.cache/zsh ~/.config/git ~/code/personal
 
 # ---------------------------------------------------------------------------
 # 5. Symlink dotfiles — core everywhere; ghostty is macOS-only
@@ -118,6 +118,7 @@ link "$DIR/home/.gitconfig" ~/.gitconfig
 log "Symlinking ~/.config entries…"
 for d in nvim zellij; do link "$DIR/config/$d" ~/.config/"$d"; done
 link "$DIR/config/starship.toml" ~/.config/starship.toml
+link "$DIR/config/herdr/config.toml" ~/.config/herdr/config.toml
 [[ "$OS" == "Darwin" ]] && link "$DIR/config/ghostty" ~/.config/ghostty
 
 # ---------------------------------------------------------------------------
