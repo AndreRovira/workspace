@@ -29,7 +29,7 @@ core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 ## Bootstrap a fresh machine
 
 ```sh
-git clone <this-repo> ~/code/personal/workspace
+git clone https://github.com/AndreRovira/workspace.git ~/code/personal/workspace
 cd ~/code/personal/workspace
 ./install.sh
 ```
