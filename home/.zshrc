@@ -67,7 +67,20 @@ bindkey '^[OB' down-line-or-beginning-search
 : "${XDG_CACHE_HOME:=$HOME/.cache}" "${XDG_STATE_HOME:=$HOME/.local/state}"
 [[ -d "$XDG_CACHE_HOME/zsh" ]] || mkdir -p "$XDG_CACHE_HOME/zsh"
 [[ -d "$XDG_STATE_HOME/zsh" ]] || mkdir -p "$XDG_STATE_HOME/zsh"
-autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
+autoload -Uz compinit
+# compaudit (the world-writable-dir security check) is the slow part of compinit;
+# run it at most once every ~20h and skip it (-C) the rest of the time. The check
+# MUST be an array glob: a (#q..) qualifier inside [[ ]] is not filename-generated,
+# so it would silently always-match. (N.mh-20) = plain file modified <20h ago;
+# empty when the dump is stale or missing, which falls through to a full compinit.
+_zdump="$XDG_CACHE_HOME/zsh/zcompdump"
+_zfresh=( ${_zdump}(N.mh-20) )
+if (( $#_zfresh )); then
+  compinit -C -d "$_zdump"
+else
+  compinit -d "$_zdump"
+fi
+unset _zdump _zfresh
 
 # Aliases — guarded so a fresh clone (before ./install.sh) keeps working ls/cat/etc.
 if command -v eza >/dev/null; then
