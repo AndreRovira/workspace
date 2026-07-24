@@ -20,7 +20,7 @@ core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 | `Brewfile.macos` | macOS-only GUI apps (Ghostty, VS Code, Alt-Tab, Nerd Font) — opt-in |
 | `install.sh` | Idempotent bootstrap; auto-detects OS, prompts for macOS extras |
 | `home/` | `.zshenv`, `.zshrc`, `.gitconfig` — symlinked into `$HOME` |
-| `config/` | Mirror of `~/.config/` — ghostty, herdr, kanata, nvim, starship, zellij |
+| `config/` | Mirror of `~/.config/` — nvim, zellij, starship, herdr, mise everywhere; ghostty and kanata are macOS-only |
 | `macos/defaults.sh` | Sensible system defaults |
 | `macos/install-kanata-driver.sh` | Installs the pinned Karabiner DriverKit driver kanata needs |
 | `macos/com.local.kanata.plist` | LaunchDaemon: kanata (homerow mods) |
@@ -33,13 +33,55 @@ core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 ## Bootstrap a fresh machine
 
 ```sh
-git clone https://github.com/AndreRovira/workspace.git ~/code/personal/workspace
-cd ~/code/personal/workspace
+git clone https://github.com/AndreRovira/workspace.git ~/code/workspace
+cd ~/code/workspace
 ./install.sh
 ```
 
-The script is safe to re-run; existing dotfiles get backed up to `*.backup`
-before being replaced with symlinks.
+The script is safe to re-run. Anything real already sitting at a target path — a
+file *or* a whole directory like `~/.config/nvim` — is moved aside to `*.backup`
+(never overwritten; a second run timestamps it) before the symlink is created.
+Existing symlinks are just repointed, so re-runs are silent. Directories are moved
+wholesale, not merged — pull anything you want to keep out of `*.backup` by hand.
+
+**Before your first new zsh, copy your shell history across.** `.zshenv` points
+`HISTFILE` at `$XDG_STATE_HOME/zsh/history`, so a pre-existing `~/.zsh_history`
+looks like it vanished. This applies on macOS as much as on Linux/WSL2 — zsh has
+been the default macOS login shell since Catalina, so there is almost always a
+history file to bring over. Do it *before* opening a new zsh, or you will be
+merging two files by hand:
+
+```sh
+mkdir -p ~/.local/state/zsh
+if [ -f ~/.zsh_history ] && [ ! -e ~/.local/state/zsh/history ]; then
+  cp -p ~/.zsh_history ~/.local/state/zsh/history
+fi
+```
+
+`cp`, not `mv`, and it refuses to overwrite an existing destination: keep
+`~/.zsh_history` until a new shell proves the entries arrived (`history -i | head`
+should list the old dates), then delete it by hand. Copy it as a file — never
+`cat`/redirect — the history format is metafied bytes, not text. The timestamps
+survive only because `home/.zshrc` sets `EXTENDED_HISTORY`; without that option zsh
+rewrites the file at the first prompt and strips every `: <epoch>:<elapsed>;` prefix
+(command text survives, dates do not), so don't drop it.
+
+**Language runtimes come from mise, not Homebrew.** `Brewfile` installs `mise`, and
+`install.sh` symlinks `config/mise/config.toml` onto `~/.config/mise/config.toml` —
+but that file only *declares* node/elixir/erlang/rebar. Bootstrap does not download
+them, so materialise them once per machine:
+
+```sh
+mise install
+```
+
+Until then `mise ls` lists them as `(missing)` and `node` falls back to whatever
+else is on PATH. `home/.zshrc` activates mise after `brew shellenv` and after
+`~/.zshrc.local`, so mise's toolchain beats Homebrew's — confirm with `command -v
+node`, which must resolve under `~/.local/share/mise/installs/`. `mise use -g`
+edits the config in place through the symlink, so a version bump shows up as a
+diff in this repo; commit it. Per-project pins belong in the project's own
+`mise.toml`, never here.
 
 **On macOS** it installs the core CLI, then asks whether to install the GUI apps
 (`Brewfile.macos`), set up kanata, and apply the macOS system defaults. It also asks (default no) whether to install the VPS access tools
@@ -48,31 +90,133 @@ non-interactively with env vars (`INSTALL_GUI` / `INSTALL_KANATA` / `INSTALL_DEF
 `INSTALL_VPS`), e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 INSTALL_DEFAULTS=0 INSTALL_VPS=0 ./install.sh`.
 
 **On Linux / WSL2** it installs only the cross-platform core (CLI tools + shell,
-Neovim, zellij, starship, git configs) — no GUI casks, no kanata, no system
-defaults. Homebrew on Linux (Linuxbrew) needs build prerequisites first:
-`sudo apt install -y build-essential procps curl file git`.
+Neovim, zellij, starship, herdr, git configs) — no GUI casks, no Ghostty, no kanata,
+no macOS system defaults. Homebrew on Linux (Linuxbrew) needs build prerequisites
+first: `sudo apt install -y build-essential procps curl file git`.
 
-WSL2/Ubuntu also ships **bash**, so install zsh and make it your login shell or the
-symlinked configs never load: `sudo apt install -y zsh && chsh -s "$(which zsh)"`
-(log out/in to take effect). macOS already uses zsh — no action needed there.
+### WSL2 + Windows Terminal checklist
 
-Neovim's UI uses Nerd Font glyphs and the font cask is macOS-only, so on Linux/WSL2
-set your host terminal (e.g. Windows Terminal) to a Nerd Font like JetBrainsMono
-Nerd Font.
+The host terminal is a Windows app, so several things live outside this repo. Do
+these once per machine, in any order.
+
+- **zsh as the login shell.** Ubuntu ships bash, and none of these configs load
+  under bash (macOS already uses zsh — nothing to do there):
+  ```sh
+  sudo apt install -y zsh && chsh -s "$(which zsh)"
+  ```
+  WSL has no "log out". The change lands in the *next* shell WSL starts, so just
+  open a new Windows Terminal tab. If it still comes up as bash, restart the
+  distro from PowerShell: `wsl.exe --shutdown`.
+
+- **Nerd Font, installed on Windows.** Neovim, starship and zellij all draw Nerd
+  Font glyphs, and the font cask is macOS-only. Install
+  [JetBrainsMono Nerd Font](https://www.nerdfonts.com/font-downloads) **on the
+  Windows side** (installing it inside WSL does nothing — the glyphs are rendered
+  by Windows Terminal), then Windows Terminal → Settings → Profiles → **Defaults**
+  → Appearance → Font face → `JetBrainsMono Nerd Font`. Set it on *Defaults* so
+  every profile inherits it.
+
+- **Unbind Windows Terminal's Alt shortcuts.** WT's own tab/pane shortcuts are
+  `Ctrl+Shift+<key>`, so every `Ctrl+<key>` this repo binds passes straight
+  through, and WT's shipped defaults bind no plain `Alt+<letter>` at all — which is
+  why the `Alt j/k/l/;` nav layer needs no fixing. What *does* collide is the
+  Alt+arrow and Alt+Shift layer: WT binds `Alt+←/↓/↑/→` to `moveFocus`,
+  `Alt+Shift+←/↓/↑/→` to `resizePane`, and `Alt+Shift++` / `Alt+Shift+-` to
+  `duplicatePane`. Two of those hit this config. On a US layout `Alt` `+` *is*
+  `alt+shift+plus`, so zellij's `Alt +` resize never arrives (use `Alt =`, bound to
+  the same action). The arrows are sneakier: WT only consumes them when the tab
+  holds more than one **WT** pane, so zellij focus nav works perfectly until the
+  first WT split and then silently dies in one direction.
+
+  Unbind the five in Settings → Actions, or edit the JSON behind Settings →
+  *Open JSON file*. That file holds only your overrides, so it will usually already
+  have a `"keybindings"` array — merge these entries into it rather than adding a
+  second array, and add a comma to whichever entry you paste behind:
+  ```jsonc
+  // Windows Terminal 1.21+. Older builds have no binding IDs; there the unbind
+  // form is  { "command": "unbound", "keys": "alt+left" }  and the array is
+  // called "actions" instead of "keybindings".
+  "keybindings": [
+      { "id": null, "keys": "alt+left"  },
+      { "id": null, "keys": "alt+right" },
+      { "id": null, "keys": "alt+up"    },
+      { "id": null, "keys": "alt+down"  },
+      { "id": null, "keys": "alt+shift+plus" }
+  ]
+  ```
+  Related, and worth knowing because it is *not* a WT default: out of the box WT
+  copies on `Ctrl+Shift+C` / `Ctrl+Insert` / `Enter` and pastes on `Ctrl+Shift+V` /
+  `Shift+Insert` — plain `Ctrl+C` and `Ctrl+V` are unbound. If you add your own
+  `ctrl+v` → paste binding, note that WT's paste action *always* consumes its key
+  (copy falls through when there is no selection, paste never does), so it costs
+  you Neovim's `<C-v>` visual-block. Remove that binding to get visual block back;
+  `Ctrl+Shift+V` pastes regardless.
+
+- **The `code` command.** VS Code is a Windows install this repo never touches;
+  WSL reaches it over interop. If `code` isn't on your PATH, add the Windows
+  install directory in `~/.zshrc.local` — it's machine-specific, so it does not
+  belong in `home/.zshrc`:
+  ```sh
+  # ~/.zshrc.local
+  export PATH="$PATH:/mnt/c/Users/<you>/AppData/Local/Programs/Microsoft VS Code/bin"
+  ```
+  Put it in `~/.zshrc.local`, not `~/.zprofile`: `.zprofile` is read only by *login*
+  shells, so `code` would be missing from every zellij pane and every nested shell.
+  Install the **WSL** extension in VS Code so `code .` opens the folder as a
+  remote-WSL window instead of a `\\wsl$\…` Windows-path window.
+
+- **Clipboard.** Windows Terminal accepts OSC 52, which is how zellij copies by
+  default — so no `copy_command` is needed and none is set. WT also has
+  `copyOnSelect` (its equivalent of Ghostty's `copy-on-select`), but unlike Ghostty
+  it ships **off**: set `"copyOnSelect": true` in `settings.json` if you want it. If
+  a zellij copy silently does nothing (older Windows Terminal, plain conhost, or VS
+  Code's integrated terminal), uncomment `copy_command "clip.exe"` in
+  `config/zellij/config.kdl`. For one-off piping, `clip.exe` is the WSL stand-in for
+  `pbcopy`.
+
+- **systemd.** Nothing in the core stack requires it, but `brew services` (e.g.
+  `brew services start herdr`) drives `systemctl --user` on Linux and needs a
+  systemd session. Enable it once in `/etc/wsl.conf`, then `wsl.exe --shutdown`:
+  ```ini
+  [boot]
+  systemd=true
+  ```
+  Without systemd, run the server in the foreground instead: `herdr server`.
+
+- **`~/.zshrc.local`.** Everything machine-specific — Windows interop PATHs, extra
+  keg-only bins, secrets — goes here. `.zshrc` sources it near the end, after
+  starship/fzf/plugins, so it can override anything the repo sets *except* the last
+  two lines, which run after it on purpose:
+  - `mise activate zsh` — deliberately after, so mise's node/elixir/erlang beat
+    anything `.zshrc.local` prepends. Don't run `mise activate` there too; it just
+    re-does the same work. Version changes go in `config/mise/config.toml`.
+  - `zoxide init zsh --cmd cd` — the very last line, so it would clobber a `cd`
+    alias or function defined in `.zshrc.local`. Don't define `cd` or re-run
+    `zoxide init` there.
+
+  See "Manual follow-ups → 5. Local secrets".
 
 ## Updating an existing machine
 
 Pull the repo; changes propagate by type:
 
 ```sh
-cd ~/code/personal/workspace && git pull
+cd ~/code/workspace && git pull
 ```
 
-- **Dotfiles & `~/.config` entries** (`home/*`, ghostty, nvim, zellij, starship)
-  are symlinks into this repo — edits go live the instant `git pull` rewrites the
-  files (a new shell / terminal window picks them up). **Kanata is the exception:**
-  `config/kanata/kanata.kbd` is read by the LaunchDaemon at launch, so after it
-  changes restart the daemon: `sudo launchctl kickstart -k system/com.local.kanata`.
+- **Dotfiles & `~/.config` entries** (`home/*`, nvim, zellij, starship, herdr —
+  plus ghostty on macOS) are symlinks into this repo, so edits go live the instant
+  `git pull` rewrites the files. What it takes for each program to *notice*:
+  - **Shell:** open a new shell (or `exec zsh`).
+  - **Neovim:** restart `nvim`. A new buffer is not enough — `lua/config/keymaps.lua`
+    is loaded once on `VeryLazy` and lazy.nvim resolves the `lua/plugins/*.lua`
+    specs at startup. If a pull adds or removes a plugin, also run `:Lazy sync`.
+  - **zellij and herdr:** both read their config at process start, so start a new
+    session — detach + reattach is not enough.
+
+  **Kanata (macOS) is the other exception:** `config/kanata/kanata.kbd` is read by
+  the LaunchDaemon at launch, so after it changes restart the daemon:
+  `sudo launchctl kickstart -k system/com.local.kanata`.
 - **Claude Code plugins** (caveman, ponytail) are git clones under `~/.claude/plugins/`,
   not part of this repo — update them with
   `claude plugin update caveman && claude plugin update ponytail`. A fresh machine
@@ -89,6 +233,8 @@ cd ~/code/personal/workspace && git pull
 
 ## Manual follow-ups (one-time)
 
+`§N` elsewhere in this file always means one of the numbered subsections below.
+
 ### 1. Personal email in git
 
 `home/.gitconfig` already carries the personal email. Only change it (and commit &
@@ -96,13 +242,18 @@ push) if you're setting this account up under a different identity.
 
 ### 2. SSH key for personal GitHub
 
+Skip the keygen if you already have a personal key — an existing `~/.ssh/id_ed25519`
+does the job; just use its name below.
+
 ```sh
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_personal -C "personal"
 cat ~/.ssh/id_ed25519_personal.pub   # copy the output, add it at github.com/settings/keys
 # clipboard: macOS `pbcopy <` · WSL2 `clip.exe <` · Wayland `wl-copy <` · X11 `xclip -selection clipboard <`
 ```
 
-Copy the relevant block from `ssh/config.example` into `~/.ssh/config`.
+Copy the relevant block from `ssh/config.example` into `~/.ssh/config`, creating that
+file if it doesn't exist — nothing here installs it — and point `IdentityFile` at
+whichever key you're actually using.
 
 Then run `gh auth login` to authenticate the GitHub CLI — this activates the git
 credential helper for HTTPS remotes (SSH remotes don't need it).
@@ -192,7 +343,7 @@ done
 
 ### 5. Local secrets
 
-Anything secret goes in `~/.zshrc.local` (gitignored, sourced by `.zshrc`):
+Anything secret goes in `~/.zshrc.local` (outside the repo, never tracked; sourced by `.zshrc`):
 
 ```sh
 # ~/.zshrc.local
@@ -201,10 +352,21 @@ export OPENAI_API_KEY="sk-..."
 
 ### 6. Apps installed but not configured here
 
-herdr and opencode install via `Brewfile` (core); VS Code via `Brewfile.macos`
-(macOS GUI, opt-in); Claude Code via its native auto-updating installer in
-`install.sh`. None of their configs are synced — sign in / configure each on first
-launch, fresh start by design.
+opencode installs via `Brewfile` (core) from upstream's own tap, `anomalyco/tap` —
+declared in the Brewfile so `brew bundle` taps it first, and preferred over the
+homebrew-core formula because that one is a release behind and `depends_on "node"`,
+which would put a second node on PATH for mise to fight. VS Code installs via
+`Brewfile.macos` (macOS GUI, opt-in — on WSL2 VS Code is a Windows install this repo
+never touches); Claude Code via its native auto-updating installer in `install.sh`.
+None of their configs are synced — sign in / configure each on first launch, fresh
+start by design.
+
+### 7. herdr and zellij are alternatives, not a stack
+
+Both install from `Brewfile` and both are configured here — `config/zellij/config.kdl`
+and `config/herdr/config.toml`, symlinked by `install.sh`. They deliberately claim the
+same Ctrl chords, so nesting them means the outer one eats every key before the inner
+one sees it. Run one or the other.
 
 The only Claude Code customisation `install.sh` applies is two user-scope plugins,
 installed from their GitHub marketplaces (idempotent, skipped if `claude` isn't on
@@ -284,17 +446,21 @@ in. Verify with `git config user.email` from inside the repo.
 ~/.zshenv          → workspace/home/.zshenv         (symlink)
 ~/.zshrc           → workspace/home/.zshrc          (symlink)
 ~/.gitconfig       → workspace/home/.gitconfig      (symlink)
-~/.zshrc.local     (machine-only, gitignored)
-~/.config/ghostty/   → workspace/config/ghostty/    (symlink)
-~/.config/kanata/    → workspace/config/kanata/     (symlink)
+~/.zshrc.local     (machine-only, never tracked)
 ~/.config/nvim/      → workspace/config/nvim/       (symlink)
 ~/.config/zellij/    → workspace/config/zellij/     (symlink)
 ~/.config/starship.toml → workspace/config/starship.toml (symlink)
 ~/.config/herdr/config.toml → workspace/config/herdr/config.toml (symlink)
-~/.config/git/local.gitconfig (machine-only, gitignored)
+~/.config/mise/config.toml → workspace/config/mise/config.toml (symlink)
+~/.config/git/local.gitconfig (machine-only, never tracked)
+~/.local/state/zsh/history    (shell history — XDG, NOT ~/.zsh_history)
+~/.cache/zsh/zcompdump        (completion cache — XDG, NOT ~/.zcompdump)
 ~/.ssh/config      (machine-only, edited by hand)
 ~/.ssh/id_ed25519_*    (machine-only, never committed)
 
+macOS only — install.sh creates none of these on Linux/WSL2:
+~/.config/ghostty/   → workspace/config/ghostty/    (symlink)
+~/.config/kanata/    → workspace/config/kanata/     (symlink, only if you opt in)
 /Library/LaunchDaemons/com.local.kanata.plist          (copy of macos/…, re-copy on change)
 /Library/LaunchDaemons/com.local.karabiner-vhidd.plist (copy of macos/…, re-copy on change)
 Karabiner DriverKit driver   (system-wide, installed by macos/install-kanata-driver.sh; not symlinked)

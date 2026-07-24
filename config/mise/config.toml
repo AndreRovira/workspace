@@ -1,0 +1,8 @@
+# mise global tool versions — symlinked to ~/.config/mise/config.toml by install.sh.
+# Declares only; `mise install` is what downloads them (install.sh prints the reminder).
+# Per-project pins belong in that project's own mise.toml, not here.
+[tools]
+node = "20"
+elixir = "1.19.5-otp-28"
+erlang = "28.3.2"
+rebar = "3.24.0"

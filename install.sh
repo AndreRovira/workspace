@@ -35,6 +35,14 @@ ask() {
   [[ "${reply:-$default}" =~ ^[Yy] ]] && return 0 || return 1
 }
 
+# link SRC DEST — replace DEST with a symlink to SRC, moving anything real aside.
+#
+# The `! -L` branch is load-bearing, not politeness: `ln -sfn SRC DEST` where DEST is
+# a *real directory* does not replace it, it creates DEST/$(basename SRC) inside it.
+# -n/-h only suppresses following a symlink, never a real dir. So a real ~/.config/nvim
+# must be moved out of the way first. Once DEST is a symlink — live, dangling, or
+# pointing elsewhere — `-f -n` unlinks and recreates it correctly on both GNU coreutils
+# and BSD/macOS ln, which is the re-run case.
 link() {
   local src="$1" dest="$2"
   if [[ -e "$dest" && ! -L "$dest" ]]; then
@@ -72,11 +80,10 @@ unset _b
 # ---------------------------------------------------------------------------
 # 2. Packages — core everywhere; GUI apps only on macOS (prompted)
 # ---------------------------------------------------------------------------
-# opencode ships from a third-party tap; Homebrew 6+ refuses to load formulae from
-# untrusted taps, so trust it before `brew bundle` tries to load the formula.
-brew tap sst/tap >/dev/null 2>&1 || true
-brew trust --tap sst/tap >/dev/null 2>&1 || true
-
+# opencode's tap and its trust marker are both declared in the Brewfile
+# (`tap "anomalyco/tap", trusted: true`), which `brew bundle` applies before it
+# loads any formula — so no pre-tap and no `brew trust` call is needed here, and
+# `brew bundle --file=Brewfile` works standalone on a fresh machine.
 log "Installing core packages (Brewfile)…"
 brew bundle --file="$DIR/Brewfile" \
   || log "⚠ Some core Brewfile entries failed — continuing so dotfiles still get linked. Fix them and re-run."
@@ -150,7 +157,8 @@ fi
 # ---------------------------------------------------------------------------
 log "Creating XDG directories…"
 mkdir -p \
-  ~/.config ~/.config/herdr ~/.local/share ~/.local/state/zsh ~/.cache/zsh ~/.config/git ~/code/personal
+  ~/.config ~/.config/herdr ~/.config/mise ~/.local/share ~/.local/state/zsh ~/.cache/zsh \
+  ~/.config/git ~/.local/bin ~/code
 
 # ---------------------------------------------------------------------------
 # 5. Symlink dotfiles — core everywhere; ghostty is macOS-only
@@ -160,10 +168,37 @@ link "$DIR/home/.zshenv"    ~/.zshenv
 link "$DIR/home/.zshrc"     ~/.zshrc
 link "$DIR/home/.gitconfig" ~/.gitconfig
 
+# Pin the gh credential helper to an absolute path, machine-locally.
+#
+# home/.gitconfig ships the portable `!gh auth git-credential` because the repo
+# serves several machines with different Homebrew prefixes. But `gh` is only ever
+# on PATH in a shell that ran `brew shellenv` — and git gets invoked plenty of
+# other ways (system /usr/bin/git, editors, GUI clients, hooks, cron), where a
+# bare `gh` is simply not found and the HTTPS push fails with a bad-credentials
+# error that points nowhere near the real cause. So resolve gh once, here, and
+# write the absolute path into the machine-local include — which home/.gitconfig
+# loads LAST precisely so it can win. Never tracked; re-resolved on every re-run.
+if GH_BIN="$(command -v gh 2>/dev/null)"; then
+  LOCAL_GITCONFIG="$HOME/.config/git/local.gitconfig"
+  [[ -e "$LOCAL_GITCONFIG" ]] || : > "$LOCAL_GITCONFIG"
+  for _host in github.com gist.github.com; do
+    # The empty first value resets any helper inherited from an outer scope;
+    # --replace-all collapses repeats so re-running never stacks duplicates.
+    git config --file "$LOCAL_GITCONFIG" --replace-all "credential.https://$_host.helper" ""
+    git config --file "$LOCAL_GITCONFIG" --add         "credential.https://$_host.helper" "!$GH_BIN auth git-credential"
+  done
+  unset _host LOCAL_GITCONFIG
+  note "Pinned gh credential helper → $GH_BIN (in ~/.config/git/local.gitconfig)"
+fi
+
 log "Symlinking ~/.config entries…"
 for d in nvim zellij; do link "$DIR/config/$d" ~/.config/"$d"; done
 link "$DIR/config/starship.toml" ~/.config/starship.toml
 link "$DIR/config/herdr/config.toml" ~/.config/herdr/config.toml
+# mise's global tool list. Symlinking it is safe in both directions: `mise use -g`
+# rewrites the file in place through the link, so a version bump lands as a repo
+# diff instead of drifting into an untracked copy.
+link "$DIR/config/mise/config.toml" ~/.config/mise/config.toml
 [[ "$OS" == "Darwin" ]] && link "$DIR/config/ghostty" ~/.config/ghostty
 
 # ---------------------------------------------------------------------------
@@ -194,6 +229,16 @@ fi
 log "✓ Bootstrap complete ($OS)."
 echo
 note "Manual follow-ups (one-time):"
+# History first, and on BOTH platforms: .zshenv repoints HISTFILE to the XDG path, so
+# an existing ~/.zsh_history silently stops being read. macOS needs this at least as
+# much as Linux — zsh has been the default login shell there since Catalina.
+# `cp`, not `mv`: nothing is destroyed until the user has seen the entries arrive.
+if [[ -f "$HOME/.zsh_history" && ! -s "$HOME/.local/state/zsh/history" ]]; then
+  note "  • Copy your old shell history over (HISTFILE is XDG now) BEFORE the next zsh:"
+  note "      cp -p ~/.zsh_history ~/.local/state/zsh/history"
+  note "    Then open a new shell, check \`history -i | head\` shows the old dates, and"
+  note "    only then remove ~/.zsh_history."
+fi
 if [[ "$OS" == "Darwin" && "$KANATA" == "1" ]]; then
   note "  • Finish kanata: ./macos/install-kanata-driver.sh (approve + reboot), then install"
   note "    the two LaunchDaemons and grant Input Monitoring — see README → \"Kanata setup\"."
@@ -204,10 +249,32 @@ if [[ "$VPS" == "1" ]]; then
   note "    into ~/.ssh/config — see README → \"VPS access\"."
 fi
 if [[ "$OS" == "Linux" ]]; then
-  note "  • Make zsh your login shell so these configs load (Ubuntu ships bash):"
-  note "      sudo apt install -y zsh && chsh -s \"\$(which zsh)\"   # then log out/in"
+  # Fall back to $SHELL when getent yields nothing (no `files` NSS source, container
+  # image with no passwd entry, LDAP/SSSD lookup failure) — an empty result would
+  # otherwise match `!= *zsh` and print the note to someone already running zsh.
+  login_shell="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)"
+  if [[ "${login_shell:-$SHELL}" != *zsh ]]; then
+    note "  • Make zsh your login shell so these configs load (Ubuntu ships bash):"
+    note "      sudo apt install -y zsh && chsh -s \"\$(which zsh)\""
+    note "    WSL has no log-out: just open a new terminal tab. Still bash? Run"
+    note "      wsl.exe --shutdown   from PowerShell, then reopen."
+  fi
+  if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+    note "  • WSL2: install a Nerd Font on WINDOWS and set it in Windows Terminal"
+    note "    (Settings → Profiles → Defaults → Appearance → JetBrainsMono Nerd Font),"
+    note "    and unbind WT's Alt+arrows / Alt+Shift++ so zellij can see them."
+    note "    VS Code \`code\`, clipboard and systemd notes: README → \"WSL2 + Windows"
+    note "    Terminal checklist\"."
+  fi
 fi
-note "  • Create ~/.zshrc.local for secrets / machine-specific PATH (gitignored)."
+# `brew bundle` installs mise but never the runtimes it manages — the linked config
+# only declares them, so until this runs `node`/`elixir` fall back to whatever else
+# is on PATH (on a fresh box: nothing, or Homebrew's).
+if command -v mise >/dev/null 2>&1 && mise ls 2>/dev/null | grep -q '(missing)'; then
+  note "  • Install the runtimes mise declares (config/mise/config.toml):"
+  note "      mise install        # then: command -v node  →  ~/.local/share/mise/installs/…"
+fi
+note "  • Create ~/.zshrc.local for secrets / machine-specific PATH (never tracked)."
 note "  • SSH key + GitHub CLI:"
 note "      ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_personal   # add .pub at github.com/settings/keys"
 note "      gh auth login"

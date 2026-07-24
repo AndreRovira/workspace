@@ -15,13 +15,17 @@
 [core]
 	editor = nvim
 
-# Local-only overrides (per-account identities, machine-specific).
-# Git silently skips this if the file does not exist.
-[include]
-	path = ~/.config/git/local.gitconfig
 [credential "https://github.com"]
-	helper = 
+	helper =
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
+	helper =
 	helper = !gh auth git-credential
+
+# Local-only overrides (per-account identities, machine-specific).
+# Git silently skips this if the file does not exist.
+# LAST on purpose — git applies values in file order and the last one wins, so
+# an include placed above a section could never override it (e.g. pinning the
+# credential helper to an absolute gh path on a box where PATH lacks Homebrew).
+[include]
+	path = ~/.config/git/local.gitconfig

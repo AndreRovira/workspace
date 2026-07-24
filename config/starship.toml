@@ -1,4 +1,150 @@
-# Starship works fine with no configuration — this file exists so you have a
-# place to customize later. See https://starship.rs/config/ for the full reference.
+# Starship — a stand-in for the powerlevel10k "lean" prompt this box ran for two
+# years (~/.p10k.zsh). What that rendered: os icon + path + git on line 1, a grey
+# ─ filler stretching to a ─╮ corner, duration and clock right-aligned on the same
+# line, ❯ alone on line 2, no blank line between prompts.
+#
+# Colours are 256-palette indices, same as p10k used, because indices ≥16 are
+# absolute in the xterm cube — the terminal's colour scheme can't repaint them
+# (it only remaps 0-15). Named colours like 'green' would drift per machine.
+#
+# Glyphs: checked against the cmap of JetBrainsMono Nerd Font, which is what the
+# Windows Terminal profile defaults resolve to. Everything below is in that font
+# except ⇡/⇣ — p10k used those too and the terminal font-falls-back for them, but
+# swap in ↑/↓ (both present) if a machine ever shows tofu there.
+#
+# Nerd Font icons are written as "\uXXXX" escapes rather than pasted literally:
+# they live in the Unicode private-use area, which editors, pagers and clipboards
+# routinely mangle into a blank. The escape is unambiguous and greppable.
+#
+# Not reproducible here: p10k's transient prompt (TRANSIENT_PROMPT=always). That's
+# a shell-side feature — add `enable_transience` after `starship init zsh` if you
+# want old prompts to collapse to a bare ❯.
 
-add_newline = true
+add_newline = false        # p10k: POWERLEVEL9K_PROMPT_ADD_NEWLINE=false
+
+# Line 1 is context, line 2 is where you type. $fill absorbs the slack, so
+# everything after it right-aligns on line 1 — that's how p10k put its right
+# prompt up there. starship's own right_format can only ever land on the input
+# line, which is why only the closing corner lives there.
+format = """
+$os\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$fill\
+$elixir\
+$nodejs\
+$terraform\
+$docker_context\
+$status\
+$cmd_duration\
+$jobs\
+$time\
+[─╮](244)
+$character"""
+
+# Other half of p10k's frame. Drop this line and the [─╮](244) above to lose it.
+# `setopt TRANSIENT_RPROMPT` in .zshrc keeps it off already-accepted lines.
+right_format = '[─╯](244)'
+
+# p10k's MULTILINE_FIRST_PROMPT_GAP_CHAR='─' in grey 244.
+[fill]
+symbol = '─'
+style = '244'
+
+# Leftmost segment, as in p10k. Nerd Font logos for the two platforms this repo
+# targets; the other ~60 distros keep starship's emoji defaults.
+[os]
+disabled = false           # starship ships this module off
+[os.symbols]
+Ubuntu = "\uF31B "         # nf-linux-ubuntu
+Macos  = "\uF179 "         # nf-fa-apple
+
+# p10k showed the full path from ~ and bolded the repo root (its "anchor"),
+# where starship defaults to truncating everything above the repo away.
+[directory]
+truncate_to_repo = false
+truncation_length = 5
+truncation_symbol = '…/'
+style = '31'
+before_repo_root_style = '31'
+repo_root_style = 'bold 39'
+read_only = "\uF023 "      # nf-fa-lock; p10k DIR_SHOW_WRITABLE=v3 drew one, starship defaults to a wide emoji
+
+[git_branch]
+format = '[$symbol$branch(:$remote_branch)]($style) '   # no "on " prefix, as in p10k
+symbol = "\uF126 "                                     # nf-fa-code_fork — p10k's VCS_BRANCH_ICON
+style = '76'
+
+# p10k's my_git_formatter: space-separated, no brackets, colour-coded by class —
+# green = remote sync state, yellow = your edits, blue = untracked, red = trouble.
+# The trailing space lives inside each symbol so a clean repo leaves no gap.
+[git_status]
+format = '([$ahead_behind$all_status]($style))'
+style = '178'
+ahead      = '[⇡$count ](76)'
+behind     = '[⇣$count ](76)'
+diverged   = '[⇣$behind_count⇡$ahead_count ](76)'
+stashed    = '[*$count ](76)'
+conflicted = '[~$count ](196)'
+untracked  = '[?$count ](39)'
+staged     = '+$count '
+modified   = '!$count '
+deleted    = '-$count '    # starship's default ✘ is one of the few glyphs the font lacks
+renamed    = '»$count '
+
+# Versions for the toolchains that actually show up in ~/code (7 mix.exs,
+# 5 package.json, 1 terraform dir); each renders only inside a matching project.
+# p10k showed none of these — it has no mise segment — so this is the one place
+# the prompt is deliberately richer than what it replaces. Add $python, $dotnet
+# or $erlang to `format` if that changes; erlang stays out while elixir already
+# prints (OTP N).
+[elixir]
+format = '[$symbol($version \(OTP $otp_version\) )]($style)'
+symbol = "\uE62D "         # nf-custom-elixir; starship defaults to a wide emoji
+style = '129'              # p10k ASDF_ELIXIR_FOREGROUND
+
+[nodejs]
+format = '[$symbol($version )]($style)'
+style = '70'               # p10k ASDF_NODEJS_FOREGROUND
+
+[terraform]
+format = '[$symbol$workspace]($style) '
+symbol = "\uE69A "         # nf-seti-terraform; starship defaults to a wide emoji
+style = '38'               # p10k TERRAFORM_OTHER_FOREGROUND
+
+# Silent on this box: starship hides the module for the `default` and
+# `desktop-linux` contexts, so it only speaks up when you're aimed at a
+# non-local daemon — which is exactly when you want to know.
+[docker_context]
+format = '[$symbol$context]($style) '
+symbol = "\uF308 "         # nf-linux-docker; starship defaults to a wide emoji
+
+# Deliberate divergence: p10k suppressed plain exit codes (a red ❯ already says
+# "that failed") and printed only signals and pipe failures. The code itself is
+# worth having. Set `disabled = true` for p10k's behaviour.
+[status]
+disabled = false
+format = '[$symbol$status]($style) '
+symbol = '✗ '
+style = '160'
+
+[cmd_duration]
+min_time = 3000            # p10k COMMAND_EXECUTION_TIME_THRESHOLD=3
+format = '[$duration]($style) '                        # no "took " prefix, as in p10k
+style = '101'
+
+[jobs]
+symbol = "\uF013 "         # nf-fa-cog; starship's default ✦ is not in the font
+style = '70'
+
+[time]
+disabled = false           # starship ships this module off; p10k had the clock on
+format = '[$time]($style) '
+time_format = '%H:%M:%S'
+style = '66'
+
+[character]
+success_symbol = '[❯](76)'
+error_symbol = '[❯](196)'

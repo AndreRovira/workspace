@@ -1,26 +1,49 @@
 onboarding = false
 [ui]
 agent_panel_sort = "spaces"
-
 show_agent_labels_on_pane_borders = false
+
 [ui.toast]
+# Hand the notification to the OS. macOS delivers these natively. On WSL2 a default
+# Ubuntu image has no notification daemon and no desktop session, so toasts are
+# simply dropped there — that's the environment, not a broken config.
 delivery = "system"
 
 [theme]
+# Inherit the host terminal's palette (Ghostty theme on macOS, the Windows Terminal
+# colour scheme on WSL2) so herdr always matches whatever the terminal is wearing.
 name = "terminal"
 auto_switch = false
 
 [keys]
 prefix = "ctrl+b"
 
-# Direct ops via Ghostty's Cmd->Ctrl byte map
-new_tab       = "ctrl+t"    # Cmd+T -> new tab   (browser muscle memory)
-new_workspace = "ctrl+n"    # Cmd+N -> new space (browser "new window")
-rename_tab    = "ctrl+r"    # Cmd+R -> rename tab
-close_tab     = "ctrl+w"    # Cmd+W -> close tab
-detach        = "ctrl+q"    # Cmd+Q -> detach (like zellij)
+# Prefix-free ops, all as Ctrl+<key> — the one encoding both hosts can actually deliver.
+#   Windows Terminal (Linux/WSL2): pressed literally. WT's own shortcuts are
+#     Ctrl+Shift+<key>, so plain Ctrl+N/T/R/W/Q pass straight through to herdr.
+#   Ghostty (macOS): config/ghostty/config maps Cmd+<key> to the matching control
+#     byte (Cmd+T -> \x14, …), so the same muscle memory arrives as Ctrl+<key>.
+# The assignment follows the browser meaning of the two chords, not zellij's: Cmd+T
+# opens a tab, Cmd+N opens a "window" — and herdr's nearest thing to a window is a space.
+# Same tradeoff zellij's keymap makes: these shadow ZLE inside herdr — Ctrl+B (prefix)
+# is backward-char, Ctrl+N down-history, Ctrl+T transpose-chars/fzf files, Ctrl+R
+# i-search/fzf history, Ctrl+W backward-kill-word, Ctrl+Q push-line.
+new_tab       = "ctrl+t"    # macOS keycap: Cmd+T — browser muscle memory
+new_workspace = "ctrl+n"    # macOS keycap: Cmd+N — new space (browser "new window")
+rename_tab    = "ctrl+r"    # macOS keycap: Cmd+R
+close_tab     = "ctrl+w"    # macOS keycap: Cmd+W
+detach        = "ctrl+q"    # macOS keycap: Cmd+Q — detaches, does not quit (like zellij)
 
 # Nav — jkl; AND arrows, both bound. Tabs = left/right, spaces = up/down.
+# Alt+<letter> is claimed by neither host: Windows Terminal binds no plain Alt+<letter>,
+# and Ghostty delivers Option as Alt (macos-option-as-alt = true). The letters are the
+# portable half of this pair.
+# Alt+<arrow> needs host-side help on BOTH:
+#   Windows Terminal binds all four to its own moveFocus and only falls through while
+#     the WT tab holds a single WT pane — unbind them (README → "WSL2 + Windows
+#     Terminal checklist") or stay on the letters.
+#   Ghostty's defaults send \eb/\ef for alt+left/alt+right instead of a real Alt+Arrow;
+#     config/ghostty/config unbinds those two to fix it. Alt+up/down are fine as shipped.
 previous_tab       = ["alt+j", "alt+left"]
 next_tab           = ["alt+;", "alt+right"]
 previous_workspace = ["alt+k", "alt+up"]

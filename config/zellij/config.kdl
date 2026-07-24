@@ -90,10 +90,28 @@ keybinds clear-defaults=true {
         }
     }
     shared_except "locked" {
+        // Windows Terminal claims the whole Alt+arrow and Alt+Shift layer: moveFocus on
+        // Alt+arrows, resizePane on Alt+Shift+arrows, duplicatePane on Alt+Shift++ and
+        // Alt+Shift+-. Plain Alt+<letter> it does not touch, which is why the Alt+letter
+        // nav below needs no host-side fixing on either terminal. Two of WT's binds land
+        // on this file: the arrows here, and `Alt +` in the resize note below.
+        // The arrows are the sneaky one — WT only consumes them while the WT tab holds
+        // more than one WT pane, so focus nav works perfectly until you split in WT and
+        // then silently dies in one direction. Unbind them in WT (README → "WSL2 +
+        // Windows Terminal checklist").
+        // On macOS these arrive intact only because config/ghostty/config unbinds
+        // alt+left/alt+right — Ghostty's own defaults send \eb/\ef for those two rather
+        // than a real Alt+Arrow, so don't delete those two lines. Alt+up/down are fine
+        // in stock Ghostty.
         bind "Alt left" { MoveFocusOrTab "left"; }
         bind "Alt down" { MoveFocus "down"; }
         bind "Alt up" { MoveFocus "up"; }
         bind "Alt right" { MoveFocusOrTab "right"; }
+        // Resize. `Alt +` is macOS-only in practice: on a US layout `+` is Shift+`=`, so
+        // Windows Terminal matches its own `alt+shift+plus` (duplicatePane) and zellij
+        // never sees the key unless you unbind it there. `Alt =` is the same action and
+        // reaches both hosts unmodified — use it. `Alt -` is unaffected: WT's bind is
+        // `alt+shift+-`, i.e. Alt+underscore, not Alt+minus.
         bind "Alt +" { Resize "Increase"; }
         bind "Alt -" { Resize "Decrease"; }
         bind "Alt =" { Resize "Increase"; }
@@ -109,11 +127,28 @@ keybinds clear-defaults=true {
         bind "Alt i" { MoveTab "left"; }
         bind "Alt o" { MoveTab "right"; }
         bind "Alt n" { NewPane; }
-        // Universal tab ops: Cmd+T / Cmd+W / Cmd+R (macOS) == Ctrl+T/W/R (Windows) — new / close / rename
+        // Tab ops, prefix-free. The binding is always Ctrl+<key> — that is the only
+        // encoding a terminal can actually put on the wire. On Windows Terminal
+        // (Linux/WSL2) you press it literally: WT's own tab shortcuts are
+        // Ctrl+Shift+<key>, so plain Ctrl+T/W/R/Q reach zellij untouched. On macOS
+        // it is Ghostty that translates — config/ghostty/config maps Cmd+<key> to
+        // the same control byte, so the keycap differs but zellij sees one binding.
+        // NOTE, both platforms: this shadows the shell, and by more than the binds
+        // visible in this block — the mode-switch blocks below take six more Ctrl
+        // chords away from ZLE. The full set zellij eats, with what each costs:
+        //   Ctrl+T fzf file widget / transpose-chars   Ctrl+R fzf history / i-search
+        //   Ctrl+W backward-kill-word                  Ctrl+Q push-line
+        //   Ctrl+B backward-char                       Ctrl+N down-line-or-history
+        //   Ctrl+P up-line-or-history                  Ctrl+S i-search-forward
+        //   Ctrl+O accept-line-and-down-history        Ctrl+H backward-delete-char
+        //   Ctrl+G send-break
+        // In nvim the same keys cost you <C-w> (window prefix), <C-o> (jumplist),
+        // <C-r> (redo), <C-n>/<C-p> (completion) and <C-b> (page up).
+        // Ctrl+G switches to locked mode and hands every one of them back.
         bind "Ctrl t" { NewTab; }
         bind "Ctrl w" { CloseTab; }
         bind "Ctrl r" { SwitchToMode "renametab"; TabNameInput 0; }
-        // Ctrl+Q (= Cmd+Q) detaches — safe & reattachable; hard-kill via `zellij kill-session`
+        // Ctrl+Q (Cmd+Q on macOS) detaches — safe & reattachable; hard-kill via `zellij kill-session`
         bind "Ctrl q" { Detach; }
     }
     shared_except "locked" "move" {
@@ -317,8 +352,13 @@ load_plugins {
 // copy_command "xclip -selection clipboard" // x11
 // copy_command "wl-copy"                    // wayland
 // copy_command "pbcopy"                     // osx
+// copy_command "clip.exe"                   // WSL2 (Windows Terminal)
 //
-// copy_command "pbcopy"
+// Left unset on purpose: OSC 52 works on both hosts we use — Ghostty on macOS and
+// Windows Terminal on WSL2 — and needs no helper binary, so it also survives SSH.
+// Uncomment the WSL2 line only if a copy silently does nothing, which means the
+// host swallowed OSC 52 (older Windows Terminal, plain conhost, or VS Code's
+// integrated terminal).
 
 // Choose the destination for copied text
 // Allows using the primary selection buffer (on x11/wayland) instead of the system clipboard.
@@ -370,6 +410,13 @@ load_plugins {
 //   - true
 //   - false (default)
 //
+// The option really is `serialize_pane_viewport`, despite what
+// zellij.dev/documentation/options.html prints — that page says
+// `pane_viewport_serialization`, and it is wrong: zellij's own
+// `zellij-utils/src/input/options.rs` and its KDL parser both still spell it
+// `serialize_pane_viewport` on main. Trust `zellij setup --dump-config` over the
+// docs site. Getting it wrong fails *quietly*: zellij ignores unknown top-level
+// options and `zellij setup --check` still reports "Well defined".
 // serialize_pane_viewport false
 
 // Scrollback lines to serialize along with the pane viewport when serializing sessions, 0
@@ -400,4 +447,19 @@ load_plugins {
 // (Requires restart)
 // Default: true (if the host terminal supports it)
 //
+// Forced OFF so key encoding is identical on both hosts:
+//   - Ghostty (macOS) DOES implement the protocol, and this is where it matters.
+//     With it on, Ghostty reports keys as CSI-u events, but config/ghostty/config
+//     delivers Cmd+<key> as raw legacy control bytes (`keybind = super+t=text:\x14`).
+//     Mixing the two encodings makes the ambiguous C0 bytes land unpredictably —
+//     \x08 / \x09 / \x0d are also Backspace / Tab / Enter — so the Cmd+H, Cmd+I and
+//     Cmd+M bindings misfire.
+//   - Windows Terminal (Linux/WSL2) had not implemented the protocol as of 1.24
+//     (the build measured here), so on that host this line is a no-op today. Set it
+//     explicitly anyway: one documented behaviour on both hosts, and no silent change
+//     when the host does gain support — which it does in newer builds, see below.
+//     Known hazard: zellij-org/zellij#5017 — from WT 1.25 on, newer zellij forces
+//     kitty mode and ignores this setting, turning every Ctrl chord into `[…;5u`
+//     garbage. Still open upstream. If that happens, pin/downgrade zellij; nothing
+//     in this file fixes it.
 support_kitty_keyboard_protocol false
