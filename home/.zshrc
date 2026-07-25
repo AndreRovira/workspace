@@ -14,6 +14,15 @@ HISTSIZE=50000
 SAVEHIST=50000
 setopt INC_APPEND_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS
 
+# Emacs keymap, explicitly. With no `bindkey -e`/`-v`, zsh picks the keymap from
+# $EDITOR/$VISUAL — and .zshenv sets those to nvim, so `main` silently became the
+# *vi insert* keymap. There Alt+Backspace (ESC DEL) is unbound, so zsh falls back
+# to the longest match — bare ESC, i.e. vi-cmd-mode — and DEL then just walks the
+# cursor left. Nothing gets erased and starship swaps ❯ for its vicmd ❮.
+# Must come before the bindkey lines below, which bind into whatever `main` is.
+bindkey -e
+bindkey '^[^H' backward-kill-word   # terminals that send ESC+^H rather than ESC+DEL
+
 # Keybindings — Up/Down search history by current prefix
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
