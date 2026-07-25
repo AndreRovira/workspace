@@ -13,8 +13,8 @@ auto_switch = false
 prefix = "ctrl+b"
 
 # Direct ops via Ghostty's Cmd->Ctrl byte map
-new_tab       = "ctrl+n"    # Cmd+N -> new tab
-new_workspace = "ctrl+t"    # Cmd+T -> new space (you'll use these more)
+new_tab       = "ctrl+t"    # Cmd+T -> new tab   (browser muscle memory)
+new_workspace = "ctrl+n"    # Cmd+N -> new space (browser "new window")
 rename_tab    = "ctrl+r"    # Cmd+R -> rename tab
 close_tab     = "ctrl+w"    # Cmd+W -> close tab
 detach        = "ctrl+q"    # Cmd+Q -> detach (like zellij)
