@@ -4,7 +4,9 @@ Personal dotfiles + bootstrap for macOS and Linux/WSL2. Optimized for a clean ho
 directory using XDG base directories. No work tooling. External editor/agent tools install fresh
 and self-configure on first launch (Claude Code and opencode everywhere; VS Code
 on macOS when you opt into GUI apps) — of the editors, only Neovim's config is
-tracked here.
+tracked here. The one exception: `install.sh` also installs two Claude Code
+plugins, [caveman](https://github.com/JuliusBrussee/caveman) and
+[ponytail](https://github.com/DietrichGebert/ponytail) (see §6).
 
 `install.sh` auto-detects the OS: macOS gets the full stack (and prompts for the
 optional GUI apps / kanata / system defaults); Linux/WSL2 gets the cross-platform
@@ -68,6 +70,10 @@ cd ~/code/personal/workspace && git pull
   files (a new shell / terminal window picks them up). **Kanata is the exception:**
   `config/kanata/kanata.kbd` is read by the LaunchDaemon at launch, so after it
   changes restart the daemon: `sudo launchctl kickstart -k system/com.local.kanata`.
+- **Claude Code plugins** (caveman, ponytail) are git clones under `~/.claude/plugins/`,
+  not part of this repo — update them with
+  `claude plugin update caveman && claude plugin update ponytail`. A fresh machine
+  gets them from `./install.sh`.
 - **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run). Note
   `brew bundle` only *adds* — a formula removed from the Brewfile stays installed until
   you `brew uninstall` it by hand.
@@ -196,6 +202,26 @@ herdr and opencode install via `Brewfile` (core); VS Code via `Brewfile.macos`
 (macOS GUI, opt-in); Claude Code via its native auto-updating installer in
 `install.sh`. None of their configs are synced — sign in / configure each on first
 launch, fresh start by design.
+
+The only Claude Code customisation `install.sh` applies is two user-scope plugins,
+installed from their GitHub marketplaces (idempotent, skipped if `claude` isn't on
+PATH yet):
+
+| Plugin | What it does | Toggle |
+|--------|--------------|--------|
+| [caveman](https://github.com/JuliusBrussee/caveman) | Terse replies: drops articles, filler, hedging. Code/diffs untouched. | `/caveman lite\|full\|ultra\|off`, or say "normal mode" |
+| [ponytail](https://github.com/DietrichGebert/ponytail) | Minimal code: YAGNI ladder (exists already? stdlib? one line?) before writing anything. Validation/security/error handling exempt. | `/ponytail lite\|full\|ultra\|off`, or say "stop ponytail" |
+
+Both inject their ruleset via a `SessionStart` hook — that hook is the point:
+without it they never self-activate ([JetBrains' A/B test](https://blog.jetbrains.com/ai/2026/07/ponytail-skill-claude-tested/)).
+Measured savings there were modest (ponytail ≈ −10 % cost, caveman ≈ −8 % output
+tokens), with no quality change. Always-on context cost per session (ruleset +
+skill listings, from `claude plugin details <name>`): ponytail ≈ 2.5k tokens,
+caveman ≈ 3k. Hooks need `node` (Brewfile). Per-machine default
+mode lives in `~/.config/{caveman,ponytail}/config.json` (`{"defaultMode":"lite"}`),
+and caveman also honours a per-repo `<repo>/.caveman/config.json`, handy for
+`{"defaultMode":"off"}` in repos where replies get pasted into tickets. Remove with
+`claude plugin uninstall <name>` — they never touch this repo.
 
 ## Adding a second GitHub account
 

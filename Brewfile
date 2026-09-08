@@ -27,5 +27,7 @@ brew "herdr"        # terminal agent multiplexer (herdr.dev)
 
 # AI / coding
 brew "sst/tap/opencode"   # third-party tap — install.sh runs `brew trust --tap sst/tap` first (Homebrew 6+)
+brew "node@22", link: true   # Node LTS: the caveman + ponytail Claude Code plugin hooks run under `node`
+                             # (install.sh installs those plugins). Keg-only, so force-link. Bump when 22 EOLs (2027-04).
 # Claude Code is installed via its native auto-updating installer in install.sh,
 # not Homebrew — the brew cask doesn't auto-update. It's a cross-platform CLI.

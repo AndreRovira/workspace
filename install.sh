@@ -101,6 +101,38 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
+# 3b. Claude Code plugins — caveman (terse replies) + ponytail (minimal code).
+#     Marketplace plugins, installed at user scope; their hooks run under Node
+#     (node@22 in Brewfile). Idempotent: skips what's already present.
+#     Update later with:  claude plugin update caveman && claude plugin update ponytail
+# ---------------------------------------------------------------------------
+export PATH="$HOME/.local/bin:$PATH"   # the native installer drops `claude` here
+if command -v claude >/dev/null 2>&1; then
+  log "Installing Claude Code plugins (caveman, ponytail)…"
+  # "<github owner/repo>  <plugin@marketplace>"
+  # Snapshot the lists once (no `cmd | grep -q` — pipefail + early grep exit is flaky).
+  have_mkts="$(claude plugin marketplace list 2>/dev/null || true)"
+  have_plugins="$(claude plugin list 2>/dev/null || true)"
+  for entry in "DietrichGebert/ponytail ponytail@ponytail" \
+               "JuliusBrussee/caveman   caveman@caveman"; do
+    read -r repo plugin <<<"$entry"
+    mkt="${plugin#*@}"
+    if ! grep -q "❯ $mkt\$" <<<"$have_mkts"; then
+      claude plugin marketplace add "$repo" >/dev/null \
+        || log "⚠ Could not add marketplace $repo — continuing."
+    fi
+    if ! grep -q "❯ $plugin\$" <<<"$have_plugins"; then
+      claude plugin install "$plugin" >/dev/null \
+        || log "⚠ Could not install plugin $plugin — continuing."
+    else
+      note "$plugin already installed."
+    fi
+  done
+else
+  note "claude not on PATH — skipped Claude Code plugins; re-run ./install.sh once it's installed."
+fi
+
+# ---------------------------------------------------------------------------
 # 4. XDG directories + state/cache subfolders tools won't auto-create
 # ---------------------------------------------------------------------------
 log "Creating XDG directories…"
