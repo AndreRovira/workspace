@@ -26,7 +26,9 @@ core (CLI tools + shell/editor/git configs), skipping everything macOS-specific.
 | `macos/com.local.kanata.plist` | LaunchDaemon: kanata (homerow mods) |
 | `macos/com.local.karabiner-vhidd.plist` | LaunchDaemon: Karabiner virtual-HID daemon (kanata's output path) |
 | `config/karabiner/` | Legacy Karabiner-Elements config — kept only to document the old Glove80 Cmd↔Ctrl swap (see §3) |
-| `ssh/config.example` | Multi-account GitHub recipe (NOT auto-installed) |
+| `ssh/config.example` | Multi-account GitHub + VPS host aliases (NOT auto-installed) |
+| `Brewfile.vps` | Opt-in VPS access tools: Tailscale app, TigerVNC viewer |
+| `android/` | Phone stack: Termux + userspace Tailscale + ssh/VNC to the VPS |
 
 ## Bootstrap a fresh machine
 
@@ -40,9 +42,10 @@ The script is safe to re-run; existing dotfiles get backed up to `*.backup`
 before being replaced with symlinks.
 
 **On macOS** it installs the core CLI, then asks whether to install the GUI apps
-(`Brewfile.macos`), set up kanata, and apply the macOS system defaults. Pre-answer
-non-interactively with env vars (`INSTALL_GUI` / `INSTALL_KANATA` / `INSTALL_DEFAULTS`),
-e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 INSTALL_DEFAULTS=0 ./install.sh`.
+(`Brewfile.macos`), set up kanata, and apply the macOS system defaults. It also asks (default no) whether to install the VPS access tools
+(`Brewfile.vps`) — only say yes on machines meant to reach the VPS. Pre-answer
+non-interactively with env vars (`INSTALL_GUI` / `INSTALL_KANATA` / `INSTALL_DEFAULTS` /
+`INSTALL_VPS`), e.g. `INSTALL_KANATA=0 INSTALL_GUI=1 INSTALL_DEFAULTS=0 INSTALL_VPS=0 ./install.sh`.
 
 **On Linux / WSL2** it installs only the cross-platform core (CLI tools + shell,
 Neovim, zellij, starship, git configs) — no GUI casks, no kanata, no system
@@ -222,6 +225,23 @@ mode lives in `~/.config/{caveman,ponytail}/config.json` (`{"defaultMode":"lite"
 and caveman also honours a per-repo `<repo>/.caveman/config.json`, handy for
 `{"defaultMode":"off"}` in repos where replies get pasted into tickets. Remove with
 `claude plugin uninstall <name>` — they never touch this repo.
+
+### 7. VPS access (only if you opted into `INSTALL_VPS`)
+
+The VPS has no public ports; everything goes over the Tailscale tailnet
+(`andrerovira.github`). Its config-as-code lives in
+[`AndreRovira/vps`](https://github.com/AndreRovira/vps) (box `CLAUDE.md` = what runs
+there); ops notes in `~/notes/technology/vps.md`.
+
+1. Open Tailscale.app → log in with GitHub → the VPS shows up as `vps` (100.114.65.15).
+2. Copy the `vps` blocks from `ssh/config.example` into `~/.ssh/config`; the key is
+   `~/code/personal/openclaw/ssh-key-2026-04-07.key` (or add this machine's own
+   key to the VPS `~/.ssh/authorized_keys` — preferred, revocable per machine).
+3. `ssh vps` · `herdr --remote vps` (persistent workspace) · desktop:
+   `open vnc://100.114.65.15:5901` or TigerVNC Viewer, password `vps` (tailnet is the gate).
+
+`vps-public` (159.54.155.19) is break-glass only: it works after re-adding the
+OCI Security List ingress rule for TCP 22.
 
 ## Adding a second GitHub account
 

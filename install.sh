@@ -90,6 +90,19 @@ if [[ "$OS" == "Darwin" ]]; then
   fi
 fi
 
+# VPS access (opt-in, default no): Tailscale + VNC viewer. Skip on machines that
+# should not reach the VPS. See README → "VPS access".
+VPS=0
+if [[ "$OS" == "Darwin" ]]; then
+  if ask INSTALL_VPS "Install VPS access tools (Tailscale app, TigerVNC viewer)?" N; then
+    VPS=1
+    log "Installing VPS access tools (Brewfile.vps — tailscale pkg asks for sudo)…"
+    brew bundle --file="$DIR/Brewfile.vps" || log "⚠ Some VPS tools failed — continuing."
+  else
+    note "Skipping VPS access tools."
+  fi
+fi
+
 # ---------------------------------------------------------------------------
 # 3. Claude Code (native, auto-updating) — cross-platform CLI, not in Homebrew
 #    because the brew cask doesn't auto-update; the native installer does.
@@ -185,6 +198,10 @@ if [[ "$OS" == "Darwin" && "$KANATA" == "1" ]]; then
   note "  • Finish kanata: ./macos/install-kanata-driver.sh (approve + reboot), then install"
   note "    the two LaunchDaemons and grant Input Monitoring — see README → \"Kanata setup\"."
   note "  • Glove80 Cmd↔Ctrl swap — see README → \"Glove80 Cmd↔Ctrl swap\"."
+fi
+if [[ "$VPS" == "1" ]]; then
+  note "  • VPS: open Tailscale.app → log in; copy the vps blocks from ssh/config.example"
+  note "    into ~/.ssh/config — see README → \"VPS access\"."
 fi
 if [[ "$OS" == "Linux" ]]; then
   note "  • Make zsh your login shell so these configs load (Ubuntu ships bash):"

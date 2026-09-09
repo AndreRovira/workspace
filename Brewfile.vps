@@ -1,0 +1,5 @@
+# Opt-in (install.sh → INSTALL_VPS): tools to reach the private VPS over Tailscale.
+# Only for machines that should access the VPS; a secondary/work machine can skip it.
+# tailscale-app's pkg needs sudo: brew bundle will prompt for your password.
+cask "tailscale-app"     # then open Tailscale.app → log in (GitHub) — same tailnet as the VPS
+cask "tigervnc-viewer"   # VNC client for the VPS desktop (macOS Screen Sharing also works)
