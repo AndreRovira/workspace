@@ -129,12 +129,18 @@ fi
 export PATH="$HOME/.local/bin:$PATH"   # the native installer drops `claude` here
 if command -v claude >/dev/null 2>&1; then
   log "Installing Claude Code plugins (caveman, ponytail)…"
-  # "<github owner/repo>  <plugin@marketplace>"
+  # "<marketplace git URL>  <plugin@marketplace>"
+  # Full HTTPS URLs, not the `owner/repo` shorthand: the shorthand clones over
+  # HTTPS and then falls back to SSH, so on a box whose GitHub auth is HTTPS-only
+  # (gh credential helper, no registered key — every fresh machine) a slow or
+  # flaky HTTPS clone ends in a misleading "SSH authentication failed" and no
+  # marketplace. A URL pins the transport. The declared marketplace name is the
+  # same either way, so the idempotency grep below is unaffected.
   # Snapshot the lists once (no `cmd | grep -q` — pipefail + early grep exit is flaky).
   have_mkts="$(claude plugin marketplace list 2>/dev/null || true)"
   have_plugins="$(claude plugin list 2>/dev/null || true)"
-  for entry in "DietrichGebert/ponytail ponytail@ponytail" \
-               "JuliusBrussee/caveman   caveman@caveman"; do
+  for entry in "https://github.com/DietrichGebert/ponytail ponytail@ponytail" \
+               "https://github.com/JuliusBrussee/caveman   caveman@caveman"; do
     read -r repo plugin <<<"$entry"
     mkt="${plugin#*@}"
     if ! grep -q "❯ $mkt\$" <<<"$have_mkts"; then
