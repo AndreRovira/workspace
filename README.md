@@ -183,6 +183,34 @@ these once per machine, in any order.
   ```
   Without systemd, run the server in the foreground instead: `herdr server`.
 
+- **MTU, if a VPN runs on Windows.** With a WireGuard tunnel up on the host
+  (ProtonVPN here), WSL2's `eth0` keeps an MTU the tunnel can't carry, and the
+  failure is a black hole, not an error: TCP connects fine, DNS resolves, and then
+  every TLS handshake hangs — `brew` sits on its API fetch, `git clone` over HTTPS
+  stalls, `curl https://github.com` returns `000`. The `claude plugin marketplace
+  add owner/repo` form makes it worse by falling back to SSH and reporting *that*
+  failure, so it reads as a missing key. Confirm before touching anything else:
+  ```sh
+  ip link show eth0 | grep -o 'mtu [0-9]*'          # 1420 or 1500 = suspect
+  ping -c1 -W3 -M do -s 1372 140.82.113.3          # github.com; 1400-byte frame
+  ```
+  A reply means the MTU is fine. `100% packet loss` with the VPN up is the black
+  hole — measured ceiling on this setup is between 1392 and 1400, so 1380 leaves
+  a margin. Fix it for the running session and make it stick across
+  `wsl.exe --shutdown` by adding a `command` line to the same `[boot]` block
+  (WSL ≥ 0.67.6; it runs as root before any shell, so `eth0` already exists):
+  ```sh
+  sudo ip link set eth0 mtu 1380
+  ```
+  ```ini
+  [boot]
+  systemd=true
+  command = ip link set eth0 mtu 1380
+  ```
+  The cost with the VPN *down* is a few percent of throughput on large transfers;
+  nothing else notices. Prefer this over `.wslconfig` on the Windows side, which has
+  no MTU knob in NAT mode.
+
 - **`~/.zshrc.local`.** Everything machine-specific — Windows interop PATHs, extra
   keg-only bins, secrets — goes here. `.zshrc` sources it near the end, after
   starship/fzf/plugins, so it can override anything the repo sets *except* the last
