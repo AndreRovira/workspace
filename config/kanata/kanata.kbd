@@ -5,6 +5,12 @@
 ;; Right hand: J=Shift K=Cmd  L=Alt  ;=Ctrl   (SCAC)
 ;;
 ;; This matches the Glove80's effective modifiers after macOS Modifier Keys swap.
+;;
+;; IMPORTANT -- Cmd/Ctrl are PRE-SWAPPED in this file. Karabiner's VirtualHIDKeyboard
+;; (kanata's output device) reports the same USB IDs as the Glove80 (vendor 5824 /
+;; product 10203), so the macOS Modifier Keys swap set for the "Glove80" also applies to
+;; everything kanata emits. Emitting lmet for Ctrl and lctl for Cmd here makes the OS
+;; swap cancel out. If the OS swap is ever removed, undo the swap here too.
 
 (defcfg
   ;; Only intercept keyboards that need Kanata home row mods
@@ -21,6 +27,7 @@
 ;; Only define the home row mod keys -- everything else passes through
 (defsrc
   a    s    d    f    j    k    l    ;
+  lctl lmet rctl rmet
 )
 
 ;; Timing variables matching sunaku's ZMK config (TAPPING_RESOLUTION = 150ms)
@@ -58,7 +65,7 @@
 (defalias
   ;; Left hand home row mods
   ;; Note: j k l ; are EXCLUDED from the list to allow home row mod chording
-  a-hrm (tap-hold-release-keys $streak-decay $pinky-timeout a lctl (1 2 3 4 5 6 7 8 9 0
+  a-hrm (tap-hold-release-keys $streak-decay $pinky-timeout a lmet (1 2 3 4 5 6 7 8 9 0
     q w e r t y u i o p
     z x c v b n m , . /
     spc bspc ret tab esc del
@@ -72,30 +79,32 @@
     left right up down
     home end pgup pgdn))
 
-  d-hrm (tap-hold-release-keys $streak-decay $middy-timeout d lmet (1 2 3 4 5 6 7 8 9 0
+  d-hrm (tap-hold-release-keys $streak-decay $middy-timeout d lctl (1 2 3 4 5 6 7 8 9 0
     q w e r t y u i o p
     z x c v b n m , . /
     spc bspc ret tab esc del
     left right up down
     home end pgup pgdn))
 
-  f-hrm (tap-hold-release-keys $streak-decay $index-timeout f lsft (1 2 3 4 5 6 7 8 9 0
-    q w e r t y u i o p
-    z x c v b n m , . /
+  ;; Shift lists hold SAME-HAND keys only: an opposite-hand key pressed and released while
+  ;; F/J is held resolves to Shift at once, without waiting for index-timeout.
+  f-hrm (tap-hold-release-keys $streak-decay $index-timeout f lsft (1 2 3 4 5
+    q w e r t
+    z x c v b
     spc bspc ret tab esc del
     left right up down
     home end pgup pgdn))
 
   ;; Right hand home row mods (mirror)
   ;; Note: a s d f are EXCLUDED from the list to allow home row mod chording
-  j-hrm (tap-hold-release-keys $streak-decay $index-timeout j rsft (1 2 3 4 5 6 7 8 9 0
-    q w e r t y u i o p
-    z x c v b n m , . /
+  j-hrm (tap-hold-release-keys $streak-decay $index-timeout j rsft (6 7 8 9 0
+    y u i o p
+    n m , . /
     spc bspc ret tab esc del
     left right up down
     home end pgup pgdn))
 
-  k-hrm (tap-hold-release-keys $streak-decay $middy-timeout k rmet (1 2 3 4 5 6 7 8 9 0
+  k-hrm (tap-hold-release-keys $streak-decay $middy-timeout k rctl (1 2 3 4 5 6 7 8 9 0
     q w e r t y u i o p
     z x c v b n m , . /
     spc bspc ret tab esc del
@@ -109,7 +118,7 @@
     left right up down
     home end pgup pgdn))
 
-  ;-hrm (tap-hold-release-keys $streak-decay $pinky-timeout ; rctl (1 2 3 4 5 6 7 8 9 0
+  ;-hrm (tap-hold-release-keys $streak-decay $pinky-timeout ; rmet (1 2 3 4 5 6 7 8 9 0
     q w e r t y u i o p
     z x c v b n m , . /
     spc bspc ret tab esc del
@@ -120,4 +129,5 @@
 ;; Default layer with home row mods
 (deflayer default
   @a-hrm @s-hrm @d-hrm @f-hrm @j-hrm @k-hrm @l-hrm @;-hrm
+  lmet lctl rmet rctl
 )
