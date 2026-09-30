@@ -425,7 +425,7 @@ there); ops notes in `~/notes/technology/vps.md`.
 
 1. Open Tailscale.app → log in with GitHub → the VPS shows up as `vps` (100.114.65.15).
 2. Copy the `vps` blocks from `ssh/config.example` into `~/.ssh/config`; the key is
-   `~/code/personal/openclaw/ssh-key-2026-04-07.key` (or add this machine's own
+   `~/code/personal/vps/ssh-key-2026-04-07.key` (or add this machine's own
    key to the VPS `~/.ssh/authorized_keys` — preferred, revocable per machine).
 3. `ssh vps` · `herdr --remote vps` (persistent workspace) · desktop:
    `open vnc://100.114.65.15:5901` or TigerVNC Viewer, password `vps` (tailnet is the gate).

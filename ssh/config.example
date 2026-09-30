@@ -27,12 +27,12 @@ Host github.com-personal
 Host openclaw-vps vps
   HostName 100.114.65.15
   User openclaw
-  IdentityFile ~/code/personal/openclaw/ssh-key-2026-04-07.key
+  IdentityFile ~/code/personal/vps/ssh-key-2026-04-07.key
   IdentitiesOnly yes
 
 # Break-glass: public IP. Only reachable after re-adding the OCI ingress rule for TCP 22.
 Host vps-public
   HostName 159.54.155.19
   User openclaw
-  IdentityFile ~/code/personal/openclaw/ssh-key-2026-04-07.key
+  IdentityFile ~/code/personal/vps/ssh-key-2026-04-07.key
   IdentitiesOnly yes
