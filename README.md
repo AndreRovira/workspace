@@ -211,6 +211,19 @@ these once per machine, in any order.
   nothing else notices. Prefer this over `.wslconfig` on the Windows side, which has
   no MTU knob in NAT mode.
 
+- **Tailscale (VPS access), installed on Windows.** `install.sh` offers the VPS
+  tools on macOS only; on WSL2, install the
+  [Tailscale Windows client](https://tailscale.com/download/windows) and log in
+  with GitHub — **not** a `tailscaled` inside WSL. In the default NAT networking
+  mode WSL2 routes `100.x` tailnet traffic through the Windows host, so one
+  Windows node serves both sides: `ssh vps` and `herdr --remote vps` from WSL, and
+  a Windows VNC viewer for the desktop. A WSL-side `tailscaled` would be a second
+  node that dies with every `wsl.exe --shutdown`. MagicDNS names may not resolve
+  inside WSL; `ssh/config.example` uses the tailnet IP, so that doesn't matter.
+  Then do steps 2–3 of "Manual follow-ups → 7. VPS access". Not yet verified with
+  ProtonVPN connected (both are WireGuard): if `ssh vps` hangs while it's up,
+  exclude Tailscale in ProtonVPN's split tunneling.
+
 - **`~/.zshrc.local`.** Everything machine-specific — Windows interop PATHs, extra
   keg-only bins, secrets — goes here. `.zshrc` sources it near the end, after
   starship/fzf/plugins, so it can override anything the repo sets *except* the last
@@ -416,7 +429,7 @@ and caveman also honours a per-repo `<repo>/.caveman/config.json`, handy for
 `{"defaultMode":"off"}` in repos where replies get pasted into tickets. Remove with
 `claude plugin uninstall <name>` — they never touch this repo.
 
-### 7. VPS access (only if you opted into `INSTALL_VPS`)
+### 7. VPS access (only if you opted into `INSTALL_VPS`, or on WSL2)
 
 The VPS has no public ports; everything goes over the Tailscale tailnet
 (`andrerovira.github`). Its config-as-code lives in
@@ -424,6 +437,7 @@ The VPS has no public ports; everything goes over the Tailscale tailnet
 there); ops notes in `~/notes/technology/vps.md`.
 
 1. Open Tailscale.app → log in with GitHub → the VPS shows up as `vps` (100.114.65.15).
+   On WSL2: Tailscale goes on Windows — see "WSL2 + Windows Terminal checklist".
 2. Copy the `vps` blocks from `ssh/config.example` into `~/.ssh/config`; the key is
    `~/code/personal/vps/ssh-key-2026-04-07.key` (or add this machine's own
    key to the VPS `~/.ssh/authorized_keys` — preferred, revocable per machine).
