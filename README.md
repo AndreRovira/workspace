@@ -220,9 +220,9 @@ these once per machine, in any order.
   a Windows VNC viewer for the desktop. A WSL-side `tailscaled` would be a second
   node that dies with every `wsl.exe --shutdown`. MagicDNS names may not resolve
   inside WSL; `ssh/config.example` uses the tailnet IP, so that doesn't matter.
-  Then do steps 2–3 of "Manual follow-ups → 7. VPS access". Not yet verified with
-  ProtonVPN connected (both are WireGuard): if `ssh vps` hangs while it's up,
-  exclude Tailscale in ProtonVPN's split tunneling.
+  Then do steps 2–3 of "Manual follow-ups → 7. VPS access". Verified working with
+  ProtonVPN connected at the same time (both are WireGuard); if a future ProtonVPN
+  build breaks it, exclude Tailscale in ProtonVPN's split tunneling.
 
 - **`~/.zshrc.local`.** Everything machine-specific — Windows interop PATHs, extra
   keg-only bins, secrets — goes here. `.zshrc` sources it near the end, after
