@@ -11,6 +11,9 @@
 ;; product 10203), so the macOS Modifier Keys swap set for the "Glove80" also applies to
 ;; everything kanata emits. Emitting lmet for Ctrl and lctl for Cmd here makes the OS
 ;; swap cancel out. If the OS swap is ever removed, undo the swap here too.
+;; Confirmed required on 2026-10-08 (orovira): removing the pre-swap broke native
+;; keyboard Ctrl/Cmd, even though no per-device remap was found via `defaults read` /
+;; ByHost plists / hidutil -- the active swap lives somewhere this search didn't reach.
 
 (defcfg
   ;; Only intercept keyboards that need Kanata home row mods
