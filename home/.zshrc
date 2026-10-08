@@ -104,6 +104,9 @@ command -v fzf      >/dev/null && eval "$(fzf --zsh)"
 [[ -r "${HOMEBREW_PREFIX:-}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
   && source "${HOMEBREW_PREFIX}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
+# asdf shims (0.16+ Go binary — no asdf.sh to source, PATH entry only)
+export PATH="$HOME/.asdf/shims:$PATH"
+
 # Local-only overrides (outside the repo, never tracked — secrets, machine-specific tweaks)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 

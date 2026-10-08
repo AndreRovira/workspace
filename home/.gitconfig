@@ -29,3 +29,9 @@
 # credential helper to an absolute gh path on a box where PATH lacks Homebrew).
 [include]
 	path = ~/.config/git/local.gitconfig
+
+# code/ repos default to work identity, except code/workspace (personal).
+[includeIf "gitdir:~/code/"]
+	path = ~/.config/git/work.gitconfig
+[includeIf "gitdir:~/code/workspace/"]
+	path = ~/.config/git/personal.gitconfig
