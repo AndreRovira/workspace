@@ -264,7 +264,8 @@ cd ~/code/workspace && git pull
   gets them from `./install.sh`.
 - **Brewfile packages & macOS defaults:** re-run `./install.sh` (safe to re-run). Note
   `brew bundle` only *adds* — a formula removed from the Brewfile stays installed until
-  you `brew uninstall` it by hand.
+  you `brew uninstall` it by hand. If `kanata` got upgraded, re-grant its macOS
+  permissions (§4c) before you next reboot.
 - **Kanata driver & LaunchDaemons are NOT reapplied by `install.sh`.** If a pull
   changes `macos/install-kanata-driver.sh` (a `KARABINER_DRIVER_VERSION` bump) or a
   `macos/*.plist`, apply it by hand: re-run the driver script for a version bump,
@@ -356,8 +357,19 @@ done
 Start order doesn't matter at boot: kanata retries until the virtual-HID daemon's
 socket exists, so whichever comes up first, it converges.
 
-**c. Grant Input Monitoring** in **System Settings → Privacy & Security → Input
-Monitoring** for `/opt/homebrew/bin/kanata` (click `+`, ⌘⇧G, paste the path).
+**c. Grant Input Monitoring _and_ Accessibility** to kanata: in **System Settings →
+Privacy & Security**, open each of **Input Monitoring** and **Accessibility**, click
+`+`, ⌘⇧G, and paste the real binary path, `$(brew --prefix kanata)/bin/kanata`
+(e.g. `/opt/homebrew/Cellar/kanata/1.12.0/bin/kanata`). Kanata needs both: without
+them it exits with `kanata needs macOS Input Monitoring permission` or `... Accessibility
+permission`, and launchd restarts it in a loop.
+
+> **After every `brew upgrade kanata`, redo step c.** The new binary has a new
+> signature, so macOS no longer honours the old grants. The kanata that is already
+> running keeps working, so nothing breaks until the next reboot, when homerow mods
+> stop working on the built-in keyboard. In both panes, remove the old `kanata` entry
+> with `−` (toggling it off and on is not enough). Then add the new path and run
+> `sudo launchctl kickstart -k system/com.local.kanata`.
 
 If your username is not `andre`, edit the `--cfg` path inside
 `com.local.kanata.plist` before installing.
